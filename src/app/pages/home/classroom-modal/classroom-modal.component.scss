@@ -1,0 +1,266 @@
+.classroom-modal {
+  max-width: 580px;
+}
+
+// ─── Modal Header ────────────────────────────────────────────────────────────
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-5) var(--space-6);
+  border-bottom: 1px solid var(--color-border);
+  gap: var(--space-4);
+
+  &.header-active {
+    background: linear-gradient(135deg, rgba(39,84,138,0.06) 0%, rgba(39,84,138,0.02) 100%);
+    border-bottom-color: rgba(39,84,138,0.12);
+  }
+
+  &.header-maintenance {
+    background: linear-gradient(135deg, rgba(221,168,83,0.08) 0%, transparent 100%);
+  }
+}
+
+.modal-header-content {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.room-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  background: var(--color-navy);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  .material-symbols-rounded {
+    color: var(--color-amber);
+    font-size: 26px;
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+}
+
+.modal-header h2 {
+  font-size: 1.25rem;
+  color: var(--color-navy);
+  margin-bottom: 2px;
+}
+
+.room-code {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-shrink: 0;
+}
+
+.close-btn {
+  color: var(--color-text-muted);
+  &:hover { color: var(--color-navy); background: var(--color-cream); }
+}
+
+// ─── Modal Body ──────────────────────────────────────────────────────────────
+.modal-body {
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: var(--space-4);
+
+  .material-symbols-rounded { font-size: 17px; color: var(--color-blue); }
+}
+
+// ─── Info Grid ───────────────────────────────────────────────────────────────
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.info-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+
+  .material-symbols-rounded { font-size: 14px; }
+}
+
+.info-value {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--color-navy);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.code-chip {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 1px 7px;
+  background: rgba(39,84,138,0.1);
+  color: var(--color-blue);
+  border-radius: var(--radius-full);
+  letter-spacing: 0.04em;
+}
+
+.schedule-days {
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+  font-weight: 400;
+  padding: 1px 6px;
+  background: var(--color-cream);
+  border-radius: 3px;
+}
+
+// ─── Empty room message ──────────────────────────────────────────────────────
+.empty-room-msg {
+  text-align: center;
+  padding: var(--space-8) var(--space-4);
+
+  .material-symbols-rounded {
+    font-size: 52px;
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-3);
+    display: block;
+    font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 48;
+  }
+
+  p {
+    font-size: 1rem;
+    color: var(--color-text-secondary);
+    strong { color: var(--color-navy); }
+  }
+
+  .sub {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    margin-top: var(--space-2);
+  }
+
+  &.maintenance .material-symbols-rounded { color: var(--color-amber); }
+}
+
+// ─── QR section ──────────────────────────────────────────────────────────────
+.qr-section {
+  background: var(--color-cream);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+}
+
+.qr-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+
+  h3 {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: 0.9rem;
+    color: var(--color-navy);
+    font-family: var(--font-display);
+    .material-symbols-rounded { font-size: 18px; color: var(--color-blue); }
+  }
+}
+
+.qr-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+
+  img {
+    width: 200px;
+    height: 200px;
+    image-rendering: pixelated;
+  }
+}
+
+.qr-hint {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  text-align: center;
+  margin-top: var(--space-3);
+  line-height: 1.5;
+}
+
+// ─── Alert ───────────────────────────────────────────────────────────────────
+.alert-error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-danger-bg);
+  border: 1px solid rgba(181,58,58,0.2);
+  border-radius: var(--radius-md);
+  color: var(--color-danger);
+  font-size: 0.88rem;
+  .material-symbols-rounded { font-size: 18px; flex-shrink: 0; }
+}
+
+// ─── Footer ──────────────────────────────────────────────────────────────────
+.modal-footer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-6);
+  border-top: 1px solid var(--color-border);
+  background: var(--color-cream);
+  flex-wrap: wrap;
+
+  .btn-secondary { margin-left: auto; }
+}
+
+.spinner-sm {
+  width: 15px;
+  height: 15px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@media (max-width: 580px) {
+  .info-grid { grid-template-columns: 1fr; }
+  .modal-footer { flex-direction: column; .btn { width: 100%; justify-content: center; } }
+}

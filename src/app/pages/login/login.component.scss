@@ -1,0 +1,376 @@
+.login-page {
+  display: flex;
+  min-height: 100vh;
+}
+
+// ─── Aside panel ────────────────────────────────────────────────────────────
+.login-aside {
+  width: 480px;
+  flex-shrink: 0;
+  background: var(--color-navy);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 80%, rgba(221,168,83,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, rgba(39,84,138,0.3) 0%, transparent 60%);
+  }
+}
+
+.aside-content {
+  position: relative;
+  z-index: 1;
+  padding: var(--space-12);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+  width: 100%;
+}
+
+// Blueprint floor plan decoration
+.blueprint-grid {
+  display: flex;
+  justify-content: center;
+  opacity: 0.9;
+}
+
+.bp-building {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1.5px solid rgba(245,238,220,0.2);
+  padding: 12px;
+  border-radius: 4px;
+  background: rgba(245,238,220,0.02);
+  position: relative;
+
+  &::before {
+    content: 'PISO 1 — BLOQUE A';
+    position: absolute;
+    top: -22px;
+    left: 0;
+    font-size: 0.58rem;
+    letter-spacing: 0.15em;
+    color: rgba(245,238,220,0.35);
+    font-family: var(--font-display);
+    font-weight: 600;
+  }
+}
+
+.bp-row {
+  display: flex;
+  gap: 4px;
+}
+
+.bp-room {
+  width: 42px;
+  height: 32px;
+  border: 1.5px solid rgba(245,238,220,0.3);
+  position: relative;
+  transition: all 0.2s;
+
+  &.active {
+    border-color: rgba(221,168,83,0.6);
+    background: rgba(221,168,83,0.08);
+  }
+
+  &.top::after {
+    content: '';
+    position: absolute;
+    bottom: -1.5px;
+    left: 30%;
+    width: 40%;
+    height: 1.5px;
+    background: var(--color-navy);
+  }
+
+  &.bottom::before {
+    content: '';
+    position: absolute;
+    top: -1.5px;
+    left: 30%;
+    width: 40%;
+    height: 1.5px;
+    background: var(--color-navy);
+  }
+}
+
+.bp-hallway {
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.52rem;
+  letter-spacing: 0.2em;
+  color: rgba(245,238,220,0.3);
+  font-family: var(--font-display);
+  font-weight: 600;
+  margin: 2px 0;
+}
+
+.aside-text {
+  h1 {
+    font-family: var(--font-display);
+    font-size: 2.4rem;
+    font-weight: 800;
+    color: var(--color-cream);
+    letter-spacing: 0.04em;
+    line-height: 1;
+    margin-bottom: var(--space-3);
+  }
+
+  p {
+    color: rgba(245,238,220,0.6);
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+}
+
+.aside-stats {
+  display: flex;
+  gap: var(--space-8);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+
+  &-num {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--color-amber);
+    line-height: 1;
+  }
+
+  &-lbl {
+    font-size: 0.8rem;
+    color: rgba(245,238,220,0.5);
+    margin-top: 2px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+}
+
+// ─── Main login area ─────────────────────────────────────────────────────────
+.login-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8);
+  background: var(--color-bg);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 440px;
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  padding: var(--space-10) var(--space-8);
+  border: 1px solid var(--color-border);
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: var(--space-8);
+
+  .card-logo {
+    display: flex;
+    justify-content: center;
+    margin-bottom: var(--space-5);
+  }
+
+  h2 {
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: var(--color-navy);
+    margin-bottom: var(--space-2);
+  }
+
+  p {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+  }
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.alert-error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-danger-bg);
+  border: 1px solid rgba(181,58,58,0.2);
+  border-radius: var(--radius-md);
+  color: var(--color-danger);
+  font-size: 0.88rem;
+  font-weight: 500;
+
+  .material-symbols-rounded { font-size: 18px; flex-shrink: 0; }
+}
+
+.input-wrapper {
+  position: relative;
+
+  .input-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    color: var(--color-text-muted);
+    pointer-events: none;
+  }
+
+  .form-control {
+    padding-left: 42px;
+    padding-right: 42px;
+  }
+}
+
+.pass-toggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  transition: color var(--transition-fast);
+  &:hover { color: var(--color-navy); }
+  .material-symbols-rounded { font-size: 18px; }
+}
+
+.field-error {
+  font-size: 0.78rem;
+  color: var(--color-danger);
+  margin-top: -var(--space-2);
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  cursor: pointer;
+  font-size: 0.88rem;
+  color: var(--color-text-secondary);
+
+  input[type="checkbox"] { display: none; }
+
+  .checkbox-custom {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--color-border);
+    border-radius: 4px;
+    flex-shrink: 0;
+    transition: all var(--transition-fast);
+    position: relative;
+  }
+
+  input:checked + .checkbox-custom {
+    background: var(--color-blue);
+    border-color: var(--color-blue);
+    &::after {
+      content: '';
+      position: absolute;
+      left: 4px;
+      top: 1px;
+      width: 5px;
+      height: 9px;
+      border: 2px solid white;
+      border-left: none;
+      border-top: none;
+      transform: rotate(45deg);
+    }
+  }
+}
+
+.submit-btn {
+  width: 100%;
+  justify-content: center;
+  padding: 0.8rem;
+  font-size: 1rem;
+  margin-top: var(--space-2);
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+// ─── Demo section ───────────────────────────────────────────────────────────
+.demo-section {
+  margin-top: var(--space-6);
+  padding-top: var(--space-5);
+  border-top: 1px dashed var(--color-border);
+  text-align: center;
+}
+
+.demo-label {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-3);
+  letter-spacing: 0.03em;
+}
+
+.demo-btns {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: center;
+}
+
+.demo-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--color-cream);
+  border: 1px solid var(--color-border);
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-family: var(--font-body);
+
+  .material-symbols-rounded { font-size: 16px; }
+
+  &:hover {
+    background: var(--color-cream-dark);
+    color: var(--color-navy);
+  }
+}
+
+// ─── Responsive ─────────────────────────────────────────────────────────────
+@media (max-width: 900px) {
+  .login-aside { display: none; }
+}
+
+@media (max-width: 480px) {
+  .login-card { padding: var(--space-6) var(--space-5); }
+}

@@ -1,0 +1,149 @@
+<div class="page-wrapper">
+  <div class="page-header">
+    <div class="page-title">
+      <h1>Materias</h1>
+      <p>Catálogo de asignaturas registradas en el sistema</p>
+    </div>
+    <button class="btn btn-primary" (click)="openCreate()">
+      <span class="material-symbols-rounded">add</span>
+      Nueva materia
+    </button>
+  </div>
+
+  <div class="filters-bar">
+    <div class="search-bar">
+      <span class="material-symbols-rounded">search</span>
+      <input
+        type="text"
+        placeholder="Buscar por nombre, código, área..."
+        [value]="searchQuery()"
+        (input)="searchQuery.set($any($event.target).value)"
+      />
+    </div>
+    <span class="results-count">{{ filtered().length }} materia(s)</span>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="loading-spinner"></div>
+      <p>Cargando materias...</p>
+    </div>
+  } @else if (filtered().length === 0) {
+    <div class="empty-state">
+      <span class="material-symbols-rounded">menu_book</span>
+      <h3>Sin resultados</h3>
+      <p>No se encontraron materias.</p>
+    </div>
+  } @else {
+    <div class="data-table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Materia</th>
+            <th>Código</th>
+            <th>Área</th>
+            <th>Créditos</th>
+            <th>Hrs/Semana</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (subject of filtered(); track subject.id) {
+            <tr>
+              <td><strong class="subject-name">{{ subject.name }}</strong></td>
+              <td><span class="code-tag">{{ subject.code }}</span></td>
+              <td class="text-muted">{{ subject.area }}</td>
+              <td class="text-muted text-center">{{ subject.credits }}</td>
+              <td class="text-muted text-center">{{ subject.hoursPerWeek }}</td>
+              <td>
+                <span class="badge" [class]="subject.status === 'active' ? 'badge-active' : 'badge-inactive'">
+                  {{ subject.status === 'active' ? 'Activa' : 'Inactiva' }}
+                </span>
+              </td>
+              <td>
+                <div class="action-btns">
+                  <button class="btn btn-icon" title="Editar" (click)="openEdit(subject)">
+                    <span class="material-symbols-rounded">edit</span>
+                  </button>
+                  <button class="btn btn-icon danger-icon" title="Eliminar" (click)="confirmDelete(subject.id)">
+                    <span class="material-symbols-rounded">delete</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+@if (showModal()) {
+  <div class="modal-overlay" (click)="$event.target === $event.currentTarget && closeModal()">
+    <div class="modal-card">
+      <div class="modal-header-simple">
+        <h2>{{ editingItem() ? 'Editar' : 'Nueva' }} materia</h2>
+        <button class="btn btn-icon" (click)="closeModal()"><span class="material-symbols-rounded">close</span></button>
+      </div>
+      <form #subjectForm="ngForm" (ngSubmit)="onSave(subjectForm)">
+        <div class="modal-form-body">
+          <div class="form-group">
+            <label>Nombre de la materia</label>
+            <input class="form-control" name="name" [(ngModel)]="formData.name" required placeholder="Ej. Matemáticas Avanzadas" />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Código</label>
+              <input class="form-control" name="code" [(ngModel)]="formData.code" required placeholder="MAT-301" />
+            </div>
+            <div class="form-group">
+              <label>Área</label>
+              <select class="form-control" name="area" [(ngModel)]="formData.area" required>
+                @for (a of areas; track a) { <option [value]="a">{{ a }}</option> }
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Créditos</label>
+              <input class="form-control" type="number" name="credits" [(ngModel)]="formData.credits" min="1" max="20" required />
+            </div>
+            <div class="form-group">
+              <label>Horas por semana</label>
+              <input class="form-control" type="number" name="hoursPerWeek" [(ngModel)]="formData.hoursPerWeek" min="1" max="20" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Estado</label>
+            <select class="form-control" name="status" [(ngModel)]="formData.status">
+              <option value="active">Activa</option>
+              <option value="inactive">Inactiva</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-form-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary" [disabled]="subjectForm.invalid || saveLoading()">
+            @if (saveLoading()) { <span class="spinner-sm"></span> }
+            {{ editingItem() ? 'Guardar' : 'Crear materia' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+@if (deleteId()) {
+  <div class="modal-overlay" (click)="$event.target === $event.currentTarget && cancelDelete()">
+    <div class="modal-card confirm-modal">
+      <div class="confirm-icon"><span class="material-symbols-rounded">delete_forever</span></div>
+      <h3>¿Eliminar materia?</h3>
+      <p>Esta acción no se puede deshacer.</p>
+      <div class="confirm-actions">
+        <button class="btn btn-secondary" (click)="cancelDelete()">Cancelar</button>
+        <button class="btn btn-danger" (click)="onDelete()">Sí, eliminar</button>
+      </div>
+    </div>
+  </div>
+}

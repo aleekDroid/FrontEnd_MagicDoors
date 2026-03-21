@@ -1,0 +1,163 @@
+<div class="modal-overlay" (click)="onOverlayClick($event)" role="dialog" aria-modal="true">
+  <div class="modal-card classroom-modal">
+
+    <!-- ── Header ─────────────────────────────────────────────────── -->
+    <div class="modal-header" [class]="'header-' + classroom().status">
+      <div class="modal-header-content">
+        <div class="room-icon">
+          <span class="material-symbols-rounded">meeting_room</span>
+        </div>
+        <div>
+          <h2>{{ classroom().label }}</h2>
+          <p class="room-code">{{ classroom().name }} · Capacidad: {{ classroom().capacity }} alumnos</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <span class="badge" [class]="'badge-' + classroom().status">{{ statusLabel() }}</span>
+        <button class="btn btn-icon close-btn" (click)="close.emit()" aria-label="Cerrar">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Body ───────────────────────────────────────────────────── -->
+    <div class="modal-body">
+
+      @if (classroom().status === 'active' && session) {
+        <!-- Active class information -->
+        <div class="session-info">
+          <h3 class="section-title">
+            <span class="material-symbols-rounded">class</span>
+            Sesión actual
+          </h3>
+
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">
+                <span class="material-symbols-rounded">person</span>
+                Docente
+              </span>
+              <span class="info-value">{{ session.teacherName }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">
+                <span class="material-symbols-rounded">menu_book</span>
+                Materia
+              </span>
+              <span class="info-value">{{ session.subject }}
+                <span class="code-chip">{{ session.subjectCode }}</span>
+              </span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">
+                <span class="material-symbols-rounded">groups</span>
+                Grupo
+              </span>
+              <span class="info-value">{{ session.group }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">
+                <span class="material-symbols-rounded">schedule</span>
+                Horario
+              </span>
+              <span class="info-value">
+                {{ session.startTime }} – {{ session.endTime }}
+                <span class="schedule-days">{{ session.schedule }}</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      } @else if (classroom().status === 'inactive') {
+        <div class="empty-room-msg">
+          <span class="material-symbols-rounded">door_open</span>
+          <p>El aula se encuentra <strong>libre</strong> en este momento.</p>
+          <p class="sub">No hay ninguna clase programada actualmente.</p>
+        </div>
+      } @else {
+        <div class="empty-room-msg maintenance">
+          <span class="material-symbols-rounded">construction</span>
+          <p>Aula en <strong>mantenimiento</strong>.</p>
+          <p class="sub">No disponible temporalmente.</p>
+        </div>
+      }
+
+      <!-- ── QR Code display ─────────────────────────────────────── -->
+      @if (qrDataUrl()) {
+        <div class="qr-section">
+          <div class="qr-header">
+            <h3>
+              <span class="material-symbols-rounded">qr_code_2</span>
+              Código QR de acceso
+            </h3>
+            <button class="btn btn-ghost btn-sm" (click)="downloadQr()">
+              <span class="material-symbols-rounded">download</span>
+              Descargar
+            </button>
+          </div>
+          <div class="qr-wrapper">
+            <img [src]="qrDataUrl()!" [alt]="'QR de acceso para ' + classroom().label" />
+          </div>
+          <p class="qr-hint">El docente puede escanear este código para registrar su entrada al aula.</p>
+        </div>
+      }
+
+      @if (qrError()) {
+        <div class="alert-error">
+          <span class="material-symbols-rounded">error</span>
+          {{ qrError() }}
+        </div>
+      }
+
+    </div><!-- /modal-body -->
+
+    <!-- ── Footer / Actions ───────────────────────────────────────── -->
+    <div class="modal-footer">
+      <button
+        class="btn btn-primary"
+        (click)="forceOpen()"
+        [disabled]="classroom().status === 'active' || actionLoading() !== null"
+        title="Abrir el aula forzosamente"
+      >
+        @if (actionLoading() === 'open') {
+          <span class="spinner-sm"></span>
+        } @else {
+          <span class="material-symbols-rounded">door_open</span>
+        }
+        Abrir aula
+      </button>
+
+      <button
+        class="btn btn-danger"
+        (click)="forceClose()"
+        [disabled]="classroom().status !== 'active' || actionLoading() !== null"
+        title="Cerrar el aula forzosamente"
+      >
+        @if (actionLoading() === 'close') {
+          <span class="spinner-sm"></span>
+        } @else {
+          <span class="material-symbols-rounded">lock</span>
+        }
+        Cerrar aula
+      </button>
+
+      <button
+        class="btn btn-amber"
+        (click)="generateQr()"
+        [disabled]="actionLoading() !== null"
+        title="Generar código QR para el docente"
+      >
+        @if (actionLoading() === 'qr') {
+          <span class="spinner-sm"></span>
+        } @else {
+          <span class="material-symbols-rounded">qr_code</span>
+        }
+        Generar QR
+      </button>
+
+      <button class="btn btn-secondary" (click)="close.emit()">
+        Cancelar
+      </button>
+    </div>
+
+  </div>
+</div>

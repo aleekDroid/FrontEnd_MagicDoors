@@ -1,0 +1,183 @@
+<div class="page-wrapper">
+
+  <!-- Page header -->
+  <div class="page-header">
+    <div class="page-title">
+      <h1>Personal</h1>
+      <p>Gestión del personal docente y administrativo</p>
+    </div>
+    <button class="btn btn-primary" (click)="openCreate()">
+      <span class="material-symbols-rounded">person_add</span>
+      Agregar personal
+    </button>
+  </div>
+
+  <!-- Filters bar -->
+  <div class="filters-bar">
+    <div class="search-bar">
+      <span class="material-symbols-rounded">search</span>
+      <input
+        type="text"
+        placeholder="Buscar por nombre, correo..."
+        [value]="searchQuery()"
+        (input)="searchQuery.set($any($event.target).value)"
+      />
+    </div>
+    <select class="form-control filter-select" [value]="filterRole()" (change)="filterRole.set($any($event.target).value)">
+      @for (r of roles; track r.value) {
+        <option [value]="r.value">{{ r.label }}</option>
+      }
+    </select>
+    <span class="results-count">{{ filtered().length }} resultado(s)</span>
+  </div>
+
+  <!-- Table -->
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="loading-spinner"></div>
+      <p>Cargando personal...</p>
+    </div>
+  } @else if (filtered().length === 0) {
+    <div class="empty-state">
+      <span class="material-symbols-rounded">person_search</span>
+      <h3>Sin resultados</h3>
+      <p>No se encontraron registros con los filtros actuales.</p>
+    </div>
+  } @else {
+    <div class="data-table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Personal</th>
+            <th>Rol</th>
+            <th>Área / Depto.</th>
+            <th>Contacto</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (person of filtered(); track person.id) {
+            <tr>
+              <td>
+                <div class="person-cell">
+                  <div class="table-avatar">{{ person.avatarInitials }}</div>
+                  <div>
+                    <p class="person-name">{{ person.firstName }} {{ person.lastName }}</p>
+                    <p class="person-email">{{ person.email }}</p>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="role-badge role-{{ person.role }}">{{ roleLabels[person.role] }}</span>
+              </td>
+              <td class="text-muted">{{ person.department || '—' }}</td>
+              <td class="text-muted">{{ person.phone }}</td>
+              <td>
+                <span class="badge" [class]="person.status === 'active' ? 'badge-active' : 'badge-inactive'">
+                  {{ person.status === 'active' ? 'Activo' : 'Inactivo' }}
+                </span>
+              </td>
+              <td>
+                <div class="action-btns">
+                  <button class="btn btn-icon" title="Editar" (click)="openEdit(person)">
+                    <span class="material-symbols-rounded">edit</span>
+                  </button>
+                  <button class="btn btn-icon danger-icon" title="Eliminar" (click)="confirmDelete(person.id)">
+                    <span class="material-symbols-rounded">delete</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+</div>
+
+<!-- ── Create / Edit Modal ──────────────────────────────────────────────────── -->
+@if (showModal()) {
+  <div class="modal-overlay" (click)="$event.target === $event.currentTarget && closeModal()">
+    <div class="modal-card">
+      <div class="modal-header-simple">
+        <h2>{{ editingItem() ? 'Editar' : 'Agregar' }} personal</h2>
+        <button class="btn btn-icon" (click)="closeModal()">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+      </div>
+
+      <form #personForm="ngForm" (ngSubmit)="onSave(personForm)">
+        <div class="modal-form-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Nombre(s)</label>
+              <input class="form-control" name="firstName" [(ngModel)]="formData.firstName" required placeholder="Laura" />
+            </div>
+            <div class="form-group">
+              <label>Apellido(s)</label>
+              <input class="form-control" name="lastName" [(ngModel)]="formData.lastName" required placeholder="Sánchez" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Correo electrónico</label>
+            <input class="form-control" type="email" name="email" [(ngModel)]="formData.email" required placeholder="usuario@escuela.edu" />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Teléfono</label>
+              <input class="form-control" name="phone" [(ngModel)]="formData.phone" placeholder="442-100-0000" />
+            </div>
+            <div class="form-group">
+              <label>Rol</label>
+              <select class="form-control" name="role" [(ngModel)]="formData.role" required>
+                @for (r of roles.slice(1); track r.value) {
+                  <option [value]="r.value">{{ r.label }}</option>
+                }
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Departamento / Área</label>
+              <input class="form-control" name="department" [(ngModel)]="formData.department" placeholder="Matemáticas" />
+            </div>
+            <div class="form-group">
+              <label>Estado</label>
+              <select class="form-control" name="status" [(ngModel)]="formData.status">
+                <option value="active">Activo</option>
+                <option value="inactive">Inactivo</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-form-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary" [disabled]="personForm.invalid || saveLoading()">
+            @if (saveLoading()) { <span class="spinner-sm"></span> }
+            {{ editingItem() ? 'Guardar cambios' : 'Agregar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- ── Delete confirm ───────────────────────────────────────────────────────── -->
+@if (deleteId()) {
+  <div class="modal-overlay" (click)="$event.target === $event.currentTarget && cancelDelete()">
+    <div class="modal-card confirm-modal">
+      <div class="confirm-icon">
+        <span class="material-symbols-rounded">delete_forever</span>
+      </div>
+      <h3>¿Eliminar registro?</h3>
+      <p>Esta acción no se puede deshacer. El registro del personal será eliminado permanentemente.</p>
+      <div class="confirm-actions">
+        <button class="btn btn-secondary" (click)="cancelDelete()">Cancelar</button>
+        <button class="btn btn-danger" (click)="onDelete()">Sí, eliminar</button>
+      </div>
+    </div>
+  </div>
+}

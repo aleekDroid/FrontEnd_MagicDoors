@@ -1,0 +1,194 @@
+<!-- ── Page wrapper ──────────────────────────────────────────────────────── -->
+<div class="home-page">
+
+  <!-- Header bar -->
+  <div class="home-header">
+    <div>
+      <h1>Panel de Aulas</h1>
+      <p>Vista de planta — Edificio Principal · Planta Baja</p>
+    </div>
+    <div class="status-legend">
+      <div class="legend-item">
+        <span class="legend-dot active"></span>
+        <span>En clase ({{ activeCount() }})</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-dot inactive"></span>
+        <span>Libre ({{ inactiveCount() }})</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-dot maintenance"></span>
+        <span>Mantenimiento ({{ maintenanceCount() }})</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floor plan container -->
+  <div class="floor-plan-wrapper">
+
+    <!-- Blueprint background decorations -->
+    <div class="blueprint-bg" aria-hidden="true">
+      <div class="compass">
+        <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="18" stroke="currentColor" stroke-width="1" stroke-dasharray="3 2"/>
+          <path d="M20 4v32M4 20h32" stroke="currentColor" stroke-width="0.8"/>
+          <path d="M20 4l-3 8h6L20 4z" fill="currentColor" opacity="0.6"/>
+          <text x="20" y="10" text-anchor="middle" font-size="5" fill="currentColor" opacity="0.6" dy="0">N</text>
+        </svg>
+      </div>
+      <div class="scale-bar">
+        <span>0</span>
+        <div class="scale-line">
+          <div class="scale-seg"></div>
+          <div class="scale-seg filled"></div>
+          <div class="scale-seg"></div>
+          <div class="scale-seg filled"></div>
+        </div>
+        <span>20m</span>
+      </div>
+    </div>
+
+    <!-- Floor plan -->
+    <div class="floor-plan">
+
+      <!-- Building label -->
+      <div class="building-label">
+        <span class="building-title">EDIFICIO PRINCIPAL</span>
+        <span class="building-subtitle">PLANTA BAJA · ESC. 1:100</span>
+      </div>
+
+      <!-- Outer building shell -->
+      <div class="building-shell">
+
+        <!-- Top row classrooms (A) -->
+        <div class="classroom-row row-top">
+          @for (room of topRow(); track room.id) {
+            <div class="classroom-slot">
+              <div
+                class="classroom-module"
+                [class]="'status-' + room.status"
+                [class.top-room]="true"
+                (click)="selectClassroom(room)"
+                [title]="room.label"
+              >
+                <!-- Room interior elements -->
+                <div class="room-interior">
+                  <!-- Teacher's desk -->
+                  <div class="furniture desk" aria-hidden="true"></div>
+                  <!-- Student seats grid -->
+                  <div class="furniture seats" aria-hidden="true">
+                    <div class="seat-row">
+                      <span></span><span></span><span></span><span></span>
+                    </div>
+                    <div class="seat-row">
+                      <span></span><span></span><span></span><span></span>
+                    </div>
+                    <div class="seat-row">
+                      <span></span><span></span><span></span><span></span>
+                    </div>
+                  </div>
+                  <!-- Status indicator -->
+                  <div class="room-status-dot" [class]="'dot-' + room.status"></div>
+                </div>
+
+                <!-- Door on bottom wall (facing hallway) -->
+                <div class="door door-bottom">
+                  <div class="door-swing"></div>
+                </div>
+
+                <!-- Room ID tag (architectural) -->
+                <div class="room-id">{{ room.name }}</div>
+
+                <!-- Active class mini-info -->
+                @if (room.status === 'active' && room.currentSession) {
+                  <div class="room-session-hint">
+                    <span>{{ room.currentSession.subject }}</span>
+                  </div>
+                }
+              </div>
+              <!-- Label below module -->
+              <div class="room-label">{{ room.label }}</div>
+            </div>
+          }
+        </div>
+
+        <!-- Hallway -->
+        <div class="hallway">
+          <div class="hallway-label">
+            <span>P A S I L L O</span>
+          </div>
+          <div class="hallway-arrows" aria-hidden="true">
+            <div class="arrow-line"></div>
+            <span class="material-symbols-rounded arrow-icon">arrow_forward</span>
+            <div class="arrow-line"></div>
+          </div>
+        </div>
+
+        <!-- Bottom row classrooms (B) -->
+        <div class="classroom-row row-bottom">
+          @for (room of bottomRow(); track room.id) {
+            <div class="classroom-slot">
+              <!-- Label above module for bottom row -->
+              <div class="room-label">{{ room.label }}</div>
+              <div
+                class="classroom-module"
+                [class]="'status-' + room.status"
+                [class.bottom-room]="true"
+                (click)="selectClassroom(room)"
+                [title]="room.label"
+              >
+                <!-- Door on top wall (facing hallway) -->
+                <div class="door door-top">
+                  <div class="door-swing swing-top"></div>
+                </div>
+
+                <!-- Room interior elements -->
+                <div class="room-interior">
+                  <div class="furniture desk" aria-hidden="true"></div>
+                  <div class="furniture seats" aria-hidden="true">
+                    <div class="seat-row">
+                      <span></span><span></span><span></span><span></span>
+                    </div>
+                    <div class="seat-row">
+                      <span></span><span></span><span></span><span></span>
+                    </div>
+                    <div class="seat-row">
+                      <span></span><span></span><span></span><span></span>
+                    </div>
+                  </div>
+                  <div class="room-status-dot" [class]="'dot-' + room.status"></div>
+                </div>
+
+                <div class="room-id">{{ room.name }}</div>
+
+                @if (room.status === 'active' && room.currentSession) {
+                  <div class="room-session-hint">
+                    <span>{{ room.currentSession.subject }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+
+      </div><!-- /building-shell -->
+
+    </div><!-- /floor-plan -->
+  </div><!-- /floor-plan-wrapper -->
+
+  <!-- Help tip -->
+  <p class="floor-tip">
+    <span class="material-symbols-rounded" style="font-size:16px;">touch_app</span>
+    Haz clic en cualquier aula para ver detalles y opciones de gestión
+  </p>
+
+</div>
+
+<!-- ── Modal ──────────────────────────────────────────────────────────────── -->
+@if (selectedClassroom()) {
+  <app-classroom-modal
+    [classroom]="selectedClassroom()!"
+    (close)="closeModal()"
+    (updated)="onClassroomUpdated($event)"
+  />
+}

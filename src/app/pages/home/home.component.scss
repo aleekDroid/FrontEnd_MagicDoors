@@ -1,0 +1,491 @@
+// ─── Floor Plan Design Variables ────────────────────────────────────────────
+$wall-color:    #1D3F66;
+$wall-width:    3.5px;
+$room-bg:       #EAE5D5;
+$room-inactive: #C8C2B0;
+$room-maint:    #D4C8A8;
+$hallway-color: #D6CFBA;
+$door-color:    #1D3F66;
+
+// ─── Page Layout ─────────────────────────────────────────────────────────────
+.home-page {
+  padding: var(--space-8);
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.home-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+
+  h1 {
+    font-size: 1.8rem;
+    color: var(--color-navy);
+  }
+
+  p {
+    color: var(--color-text-secondary);
+    font-size: 0.88rem;
+    margin-top: 2px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+}
+
+// ─── Status Legend ────────────────────────────────────────────────────────────
+.status-legend {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3) var(--space-5);
+  box-shadow: var(--shadow-sm);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+
+  &.active      { background: var(--color-success); box-shadow: 0 0 0 3px rgba(46,125,82,0.15); }
+  &.inactive    { background: var(--color-text-muted); }
+  &.maintenance { background: var(--color-amber); }
+}
+
+// ─── Floor plan wrapper ───────────────────────────────────────────────────────
+.floor-plan-wrapper {
+  position: relative;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(39,84,138,0.03) 0%, transparent 70%),
+    #EDE8D8;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: 48px 48px 56px;
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+
+  // Blueprint dot-grid pattern
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle, rgba(24,59,78,0.12) 1px, transparent 1px);
+    background-size: 24px 24px;
+    pointer-events: none;
+  }
+}
+
+// ─── Blueprint decorations ────────────────────────────────────────────────────
+.blueprint-bg {
+  position: absolute;
+  bottom: 16px;
+  right: 20px;
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-6);
+  opacity: 0.5;
+  color: var(--color-navy);
+  pointer-events: none;
+}
+
+.compass {
+  width: 40px;
+  svg { width: 40px; height: 40px; }
+}
+
+.scale-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.62rem;
+  font-family: var(--font-display);
+  letter-spacing: 0.05em;
+  color: var(--color-navy);
+}
+
+.scale-line {
+  display: flex;
+  height: 6px;
+  border-left: 1.5px solid;
+  border-right: 1.5px solid;
+  border-color: currentColor;
+}
+
+.scale-seg {
+  width: 18px;
+  height: 100%;
+  border-right: 1.5px solid currentColor;
+  &.filled { background: currentColor; }
+}
+
+// ─── Floor Plan ───────────────────────────────────────────────────────────────
+.floor-plan {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.building-label {
+  align-self: flex-start;
+  margin-bottom: var(--space-3);
+  padding: 4px 12px;
+  border: 1px solid rgba(24,59,78,0.2);
+  border-radius: 3px;
+
+  .building-title {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    color: var(--color-navy);
+  }
+
+  .building-subtitle {
+    display: block;
+    font-size: 0.58rem;
+    letter-spacing: 0.12em;
+    color: var(--color-text-muted);
+    margin-top: 1px;
+  }
+}
+
+// ─── Building shell ───────────────────────────────────────────────────────────
+.building-shell {
+  border: $wall-width solid $wall-color;
+  border-radius: 2px;
+  padding: 0;
+  position: relative;
+  background: $hallway-color;
+  box-shadow: 4px 4px 0 rgba(24,59,78,0.15), 6px 6px 14px rgba(24,59,78,0.1);
+}
+
+// ─── Classroom rows ───────────────────────────────────────────────────────────
+.classroom-row {
+  display: flex;
+  gap: 0;
+
+  &.row-top {
+    border-bottom: $wall-width solid $wall-color;
+  }
+  &.row-bottom {
+    border-top: $wall-width solid $wall-color;
+  }
+}
+
+.classroom-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+
+  // Vertical wall between rooms
+  & + & .classroom-module {
+    border-left: $wall-width solid $wall-color;
+  }
+}
+
+// ─── Classroom module ─────────────────────────────────────────────────────────
+.classroom-module {
+  width: 150px;
+  height: 120px;
+  background: $room-bg;
+  position: relative;
+  cursor: pointer;
+  transition: filter var(--transition-base), box-shadow var(--transition-base);
+  overflow: visible;
+
+  // Vertical separator
+  border-right: $wall-width solid $wall-color;
+  &:last-child { border-right: none; }
+
+  // Status variants
+  &.status-inactive {
+    background: $room-inactive;
+    filter: brightness(0.88);
+  }
+
+  &.status-maintenance {
+    background: $room-maint;
+    &::after {
+      content: '⚠';
+      position: absolute;
+      top: 6px;
+      right: 8px;
+      font-size: 10px;
+      color: var(--color-amber-dark);
+      opacity: 0.8;
+    }
+  }
+
+  // Hover effect — golden glow
+  &:hover {
+    filter: brightness(1.04);
+    box-shadow:
+      inset 0 0 0 2px rgba(221,168,83,0.6),
+      0 0 20px rgba(221,168,83,0.25);
+    z-index: 2;
+
+    .room-interior .furniture { opacity: 0.5; }
+  }
+
+  &:active { filter: brightness(0.97); }
+}
+
+// ─── Door ─────────────────────────────────────────────────────────────────────
+.door {
+  position: absolute;
+  z-index: 3;
+}
+
+// Bottom door (top-row rooms face hallway below)
+.door-bottom {
+  bottom: -$wall-width;
+  left: 28%;
+  width: 44px;
+  height: $wall-width;
+  background: $hallway-color; // Erases wall to create opening
+  z-index: 5;
+
+  .door-swing {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 40px;
+    height: 40px;
+    border-bottom-right-radius: 40px;
+    border: 1px solid rgba($door-color, 0.35);
+    border-top: none;
+    border-left: none;
+    pointer-events: none;
+  }
+}
+
+// Top door (bottom-row rooms face hallway above)
+.door-top {
+  top: -$wall-width;
+  left: 28%;
+  width: 44px;
+  height: $wall-width;
+  background: $hallway-color;
+  z-index: 5;
+
+  .swing-top {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 40px;
+    height: 40px;
+    border-top-right-radius: 40px;
+    border: 1px solid rgba($door-color, 0.35);
+    border-bottom: none;
+    border-left: none;
+  }
+}
+
+// ─── Room interior elements ───────────────────────────────────────────────────
+.room-interior {
+  position: absolute;
+  inset: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  pointer-events: none;
+}
+
+.furniture {
+  opacity: 0.35;
+  transition: opacity var(--transition-base);
+
+  &.desk {
+    width: 38px;
+    height: 12px;
+    border: 1.5px solid $wall-color;
+    border-radius: 1px;
+    background: rgba($wall-color, 0.08);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  &.seats {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: 3px;
+
+    .seat-row {
+      display: flex;
+      gap: 3px;
+
+      span {
+        width: 10px;
+        height: 8px;
+        border: 1px solid $wall-color;
+        border-radius: 1px;
+        display: block;
+      }
+    }
+  }
+}
+
+// ─── Room status dot ─────────────────────────────────────────────────────────
+.room-status-dot {
+  position: absolute;
+  top: 4px;
+  left: 6px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+
+  &.dot-active {
+    background: var(--color-success);
+    box-shadow: 0 0 0 2px rgba(46,125,82,0.25);
+    animation: pulse 2.5s ease-in-out infinite;
+  }
+
+  &.dot-inactive    { background: var(--color-text-muted); }
+  &.dot-maintenance { background: var(--color-amber); }
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(46,125,82,0.25); }
+  50%       { box-shadow: 0 0 0 5px rgba(46,125,82,0.08); }
+}
+
+// ─── Room ID (architectural number tag) ──────────────────────────────────────
+.room-id {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  font-family: var(--font-display);
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: rgba($wall-color, 0.6);
+  letter-spacing: 0.05em;
+  pointer-events: none;
+}
+
+// ─── Session hint ─────────────────────────────────────────────────────────────
+.room-session-hint {
+  position: absolute;
+  bottom: 7px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  pointer-events: none;
+
+  span {
+    display: inline-block;
+    background: rgba(39,84,138,0.12);
+    color: var(--color-blue-dark);
+    font-size: 0.62rem;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 2px;
+    letter-spacing: 0.02em;
+    max-width: 90%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+// ─── Room label (below/above module) ─────────────────────────────────────────
+.room-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-family: var(--font-display);
+  color: var(--color-text-secondary);
+  letter-spacing: 0.05em;
+  text-align: center;
+  white-space: nowrap;
+}
+
+// ─── Hallway ──────────────────────────────────────────────────────────────────
+.hallway {
+  background: $hallway-color;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+  width: 100%;
+}
+
+.hallway-label {
+  font-family: var(--font-display);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  color: rgba($wall-color, 0.45);
+}
+
+.hallway-arrows {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 80%;
+  opacity: 0.2;
+  color: $wall-color;
+}
+
+.arrow-line {
+  flex: 1;
+  height: 1px;
+  background: currentColor;
+}
+
+.arrow-icon {
+  font-size: 14px;
+}
+
+// ─── Tip ──────────────────────────────────────────────────────────────────────
+.floor-tip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  margin-top: -var(--space-2);
+
+  .material-symbols-rounded { color: var(--color-amber); }
+}
+
+// ─── Responsive ──────────────────────────────────────────────────────────────
+@media (max-width: 1100px) {
+  .classroom-module { width: 120px; height: 100px; }
+  .furniture.desk { width: 32px; }
+}
+
+@media (max-width: 900px) {
+  .home-page { padding: var(--space-4); }
+  .floor-plan-wrapper { padding: 24px 16px 36px; overflow-x: auto; }
+  .classroom-module { width: 100px; height: 85px; }
+  .furniture.seats .seat-row { gap: 2px; span { width: 8px; height: 6px; } }
+  .status-legend { flex-wrap: wrap; gap: var(--space-3); }
+}
