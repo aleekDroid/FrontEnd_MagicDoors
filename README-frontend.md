@@ -2,6 +2,12 @@
 
 Aplicación web en Angular 20 para gestión de aulas con control de acceso.
 
+> **⚠️ ESTADO: 11 abril 2026**
+> El login falla con HTTP 500 por bugs en el backend (ver README-backend.md).
+> Para trabajar offline, activa el modo mock en cada servicio (`USE_MOCK = true`).
+
+
+
 ## Requisitos
 
 - Node.js 18+
@@ -97,3 +103,49 @@ export const environment = {
 ng build
 # Archivos en: dist/mg-magic-doors/
 ```
+
+---
+
+## 📦 Dependencias clave
+
+| Paquete      | Versión | Nota                                    |
+|--------------|---------|-----------------------------------------|
+| Angular      | ^20.0.0 | Standalone components, Signals          |
+| rxjs         | ~7.8.0  | Observables y operadores                |
+| qrcode       | ^1.5.4  | Librería para renderizar QR codes       |
+| TypeScript   | ~5.8.0  | Tipado estático                         |
+
+**Para servir con proxy:** `ng serve` (usa `proxy.conf.json` automáticamente con Angular CLI)
+
+> Si usas Vite directamente, el proxy de Angular CLI es el que inyecta `/api → localhost:3000`.
+> No confundir con el proxy de Vite que aparece en dev mode — el que importa es `proxy.conf.json`.
+
+---
+
+## 🗺️ Flujo de datos (resumen)
+
+```
+[Angular Component]
+      ↓ llama
+[Service (*.service.ts)]  ← USE_MOCK=false → HttpClient
+      ↓ usa /api/...
+[Angular Dev Proxy]  ← proxy.conf.json
+      ↓ redirige a localhost:3000
+[API Gateway]  ← api-gateway/src/server.js
+      ↓ proxy con http-proxy-middleware
+[Microservicio]  ← servicio-usuarios:3001 / servicio-aulas:3002
+      ↓ consulta
+[PostgreSQL]  ← DB_Usuarios / DB_Aulas
+```
+
+## 🔐 Roles y rutas protegidas
+
+| Ruta        | Guard        | Descripción                          |
+|-------------|--------------|--------------------------------------|
+| /login      | publicGuard  | Solo si NO estás autenticado         |
+| /home       | authGuard    | Cualquier usuario autenticado        |
+| /personal   | adminGuard   | Solo `rol_id = 1` (admin)            |
+| /materias   | authGuard    | Cualquier usuario autenticado        |
+| /grupos     | authGuard    | Cualquier usuario autenticado        |
+
+Tokens almacenados en `localStorage` con claves `edu_token` y `edu_user`.

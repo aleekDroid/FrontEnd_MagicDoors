@@ -1,9 +1,11 @@
+// src/app/core/services/classroom.service.ts
 import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { delay, tap } from 'rxjs/operators';
 import { Classroom, ClassroomStatus } from '../models/classroom.model';
 import { environment } from '../config/environment';
+import { SessionFormData } from '../../pages/home/classroom-modal/classroom-modal.component';
 
 const MOCK_CLASSROOMS: Classroom[] = [
   { id: 'a1', name: 'A-101', label: 'Aula A-101', status: 'active', row: 'top', col: 1, capacity: 35,
@@ -39,6 +41,7 @@ export class ClassroomService {
     );
   }
 
+  /*
   updateStatus(id: string, status: ClassroomStatus): Observable<Classroom> {
     if (this.USE_MOCK) {
       this.classrooms.update(list => list.map(c => c.id === id ? { ...c, status } : c));
@@ -47,7 +50,7 @@ export class ClassroomService {
     return this.http.patch<Classroom>(`${this.API_URL}/${id}/status`, { status }).pipe(
       tap(updated => this.classrooms.update(list => list.map(c => c.id === id ? updated : c)))
     );
-  }
+  }*/
 
   generateQr(classroomId: string): Observable<{ qrData: string }> {
     if (this.USE_MOCK) {
@@ -56,4 +59,41 @@ export class ClassroomService {
     }
     return this.http.post<{ qrData: string }>(`${this.API_URL}/${classroomId}/qr`, {});
   }
+
+  /* ─── Asignar una clase manualmente (Desde el Modal) ───
+  activateSession(id: string, sessionData: any): Observable<any> {
+    if (this.USE_MOCK) {
+      console.log('Mock: Sesión activada en aula', id, sessionData);
+      return of({ mensaje: 'Sesión activada (Mock)' }).pipe(delay(300));
+    }
+    return this.http.post(`${this.API_URL}/${id}/sesion`, sessionData).pipe(
+      // Recargamos todas las aulas para que el plano se actualice inmediatamente
+      tap(() => this.getAll().subscribe()) 
+    );
+  } */
+
+  activateSession(id: string, formData: SessionFormData): Observable<Classroom> {
+    return this.http
+      .post<Classroom>(`${environment.apiUrl}/aulas/${id}/sesion`, formData)
+      .pipe(
+        tap(updated => {
+          // Actualiza el aula en el signal sin recargar toda la lista
+          this.classrooms.update(list =>
+            list.map(c => c.id === id ? updated : c)
+          );
+        })
+      );
+  }
+
+  updateStatus(id: string, status: 'active' | 'inactive' | 'maintenance'): Observable<Classroom> {
+  return this.http
+    .patch<Classroom>(`${environment.apiUrl}/aulas/${id}/status`, { status })
+    .pipe(
+      tap(updated => {
+        this.classrooms.update(list =>
+          list.map(c => c.id === id ? updated : c)
+        );
+      })
+    );
+}
 }
