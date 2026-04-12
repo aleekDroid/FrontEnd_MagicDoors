@@ -80,13 +80,13 @@
 </div>
 
 @if (showModal()) {
-  <div class="modal-overlay" (click)="$event.target === $event.currentTarget && closeModal()">
-    <div class="modal-card">
+<div class="modal-overlay" (click)="$event.target === $event.currentTarget && closeModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
       <div class="modal-header-simple">
         <h2>{{ editingItem() ? 'Editar' : 'Nueva' }} materia</h2>
         <button class="btn btn-icon" (click)="closeModal()"><span class="material-symbols-rounded">close</span></button>
       </div>
-      <form #subjectForm="ngForm" (ngSubmit)="onSave(subjectForm)">
+      <form #subjectForm="ngForm" (ngSubmit)="onSave(subjectForm)" novalidate>
         <div class="modal-form-body">
           <div class="form-group">
             <label>Nombre de la materia</label>
@@ -124,7 +124,7 @@
         </div>
         <div class="modal-form-footer">
           <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancelar</button>
-          <button type="submit" class="btn btn-primary" [disabled]="subjectForm.invalid || saveLoading()">
+          <button type="button" class="btn btn-primary" (click)="onSave(subjectForm)" [disabled]="subjectForm.invalid || saveLoading()">
             @if (saveLoading()) { <span class="spinner-sm"></span> }
             {{ editingItem() ? 'Guardar' : 'Crear materia' }}
           </button>

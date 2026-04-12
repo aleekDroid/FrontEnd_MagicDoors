@@ -64,11 +64,13 @@ export class PersonnelService {
     }
     // Map frontend → backend payload
     const rolMap: Record<string, number> = { director: 1, teacher: 2, coordinator: 2, cleaning: 2, admin: 1 };
-    const payload = {
+const payload = {
       nombre:  `${data.firstName} ${data.lastName}`.trim(),
       email:   data.email,
-      password: data.password || 'MagicDoors2024!', // default password — admin should change it
+      password: data.password || 'MagicDoors2024!',
       rol_id:  rolMap[data.role] ?? 2,
+      telefono: data.phone,           
+      departamento: data.department   
     };
     console.log('📤 POST /registro con payload:', payload);
     return this.http.post<any>(`${this.API_URL}/registro`, payload).pipe(
@@ -87,11 +89,13 @@ export class PersonnelService {
       return of(this.mockData.find(p => p.id === id)!).pipe(delay(400));
     }
     const rolMap: Record<string, number> = { director: 1, teacher: 2, coordinator: 2, cleaning: 2, admin: 1 };
-    const payload: any = {
+const payload: any = {
       nombre: data.firstName && data.lastName ? `${data.firstName} ${data.lastName}`.trim() : undefined,
       email:  data.email,
       rol_id: data.role ? rolMap[data.role] : undefined,
       activo: data.status === 'active',
+      telefono: data.phone,           
+      departamento: data.department   
     };
     return this.http.put<any>(`${this.API_URL}/${id}`, payload).pipe(
       map(mapUsuario),

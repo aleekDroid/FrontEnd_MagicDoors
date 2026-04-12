@@ -13,6 +13,16 @@ import { PersonnelService } from '../../core/services/personnel.service';
 })
 export class PersonnelComponent implements OnInit {
   private service = inject(PersonnelService);
+  private readonly controlLabels: Record<string, string> = {
+    firstName: 'Nombre(s)',
+    lastName: 'Apellido(s)',
+    email: 'Correo electronico',
+    phone: 'Telefono',
+    role: 'Rol',
+    department: 'Departamento / Area',
+    status: 'Estado',
+    password: 'Contrasena inicial',
+  };
 
   personnel   = this.service.personnel;
   loading     = signal(true);
@@ -23,6 +33,7 @@ export class PersonnelComponent implements OnInit {
   editingItem = signal<Personnel | null>(null);
   saveLoading = signal(false);
   errorMsg    = signal('');
+  invalidFields = signal<string[]>([]);
   deleteId    = signal<string | null>(null);
 
   roles: { value: PersonnelRole | ''; label: string }[] = [
@@ -60,31 +71,61 @@ export class PersonnelComponent implements OnInit {
     this.editingItem.set(null);
     this.formData = this.emptyForm();
     this.errorMsg.set('');
+    this.invalidFields.set([]);
+    this.saveLoading.set(false);
     this.showModal.set(true);
   }
 
   openEdit(item: Personnel): void {
     this.editingItem.set(item);
     this.formData = { ...item };
+    this.errorMsg.set('');
+    this.invalidFields.set([]);
+    this.saveLoading.set(false);
     this.showModal.set(true);
   }
 
   closeModal(): void {
     this.showModal.set(false);
     this.editingItem.set(null);
+    this.errorMsg.set('');
+    this.invalidFields.set([]);
+    this.saveLoading.set(false);
   }
 
   onSave(form: NgForm): void {
     console.log('onSave llamado');
+    form.form.markAllAsTouched();
     console.log('¿Formulario inválido?', form.invalid);
     console.log('Valores del formulario:', form.value);
 
     if (form.invalid || this.saveLoading()) {
-      this.errorMsg.set('Por favor, revisa que todos los campos requeridos y el formato del correo sean correctos.');
-      console.error('❌ Formulario inválido:', form.errors);
+      const invalidFields = Object.entries(form.controls)
+        .filter(([, control]) => control.invalid)
+        .map(([name]) => this.controlLabels[name] ?? name);
+
+      this.invalidFields.set(invalidFields);
+      this.errorMsg.set(
+        invalidFields.length
+          ? `Angular esta marcando como invalidos estos campos: ${invalidFields.join(', ')}.`
+          : 'El formulario no es valido, pero Angular no reporto un control invalido identificable.'
+      );
+      console.error('❌ Formulario inválido:', {
+        formErrors: form.errors,
+        controls: Object.fromEntries(
+          Object.entries(form.controls).map(([name, control]) => [name, {
+            value: control.value,
+            valid: control.valid,
+            invalid: control.invalid,
+            errors: control.errors,
+          }])
+        ),
+      });
       return;
     }
+
     this.errorMsg.set('');
+    this.invalidFields.set([]);
     this.saveLoading.set(true);
 
     const editing = this.editingItem();

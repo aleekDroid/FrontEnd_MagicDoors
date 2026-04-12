@@ -100,8 +100,8 @@
 
 <!-- ── Create / Edit Modal ──────────────────────────────────────────────────── -->
 @if (showModal()) {
-  <div class="modal-overlay" (click)="$event.target === $event.currentTarget && closeModal()">
-    <div class="modal-card">
+  <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
       <div class="modal-header-simple">
         <h2>{{ editingItem() ? 'Editar' : 'Agregar' }} personal</h2>
         <button class="btn btn-icon" (click)="closeModal()">
@@ -109,7 +109,7 @@
         </button>
       </div>
 
-      <form #personForm="ngForm" (ngSubmit)="onSave(personForm)">
+      <form #personForm="ngForm" (ngSubmit)="onSave(personForm)" novalidate>
         <div class="modal-form-body">
           <div class="form-row">
             <div class="form-group">
@@ -164,10 +164,15 @@
           <div class="error-message">{{ errorMsg() }}</div>
         }
 
+        @if (invalidFields().length) {
+          <div class="error-message">
+            Campos invalidos detectados por Angular: {{ invalidFields().join(', ') }}
+          </div>
+        }
+
         <div class="modal-form-footer">
           <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancelar</button>
-          <p style="color: red; font-size: 12px;">Estado del form inválido: {{ personForm.invalid }}</p>
-          <button type="submit" class="btn btn-primary" [disabled]="personForm.invalid || saveLoading()">
+          <button type="button" class="btn btn-primary" (click)="onSave(personForm)" [disabled]="saveLoading()">
             @if (saveLoading()) { <span class="spinner-sm"></span> }
             {{ editingItem() ? 'Guardar cambios' : 'Agregar' }}
           </button>

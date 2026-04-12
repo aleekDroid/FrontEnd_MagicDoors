@@ -95,7 +95,7 @@
 
 @if (showModal()) {
   <div class="modal-overlay" (click)="$event.target === $event.currentTarget && closeModal()">
-    <div class="modal-card">
+    <div class="modal-card" (click)="$event.stopPropagation()">
       <div class="modal-header-simple">
         <h2>{{ editingItem() ? 'Editar' : 'Nuevo' }} grupo</h2>
         <button class="btn btn-icon" (click)="closeModal()"><span class="material-symbols-rounded">close</span></button>
@@ -140,7 +140,7 @@
         </div>
         <div class="modal-form-footer">
           <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancelar</button>
-          <button type="submit" class="btn btn-primary" [disabled]="groupForm.invalid || saveLoading()">
+          <button type="button" class="btn btn-primary" (click)="onSave(groupForm)" [disabled]="groupForm.invalid || saveLoading()">
             @if (saveLoading()) { <span class="spinner-sm"></span> }
             {{ editingItem() ? 'Guardar' : 'Crear grupo' }}
           </button>
