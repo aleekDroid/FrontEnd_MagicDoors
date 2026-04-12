@@ -1,3 +1,4 @@
+// src/app/core/services/personnel.service.ts
 import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
@@ -46,13 +47,15 @@ export class PersonnelService {
 
   getAll(): Observable<Personnel[]> {
     if (this.USE_MOCK) return of([...this.mockData]).pipe(delay(300));
+    console.log('📥 GET', this.API_URL);
     return this.http.get<any[]>(this.API_URL).pipe(
+      tap(data => console.log('✅ Respuesta GET:', data)),
       map(list => list.map(mapUsuario)),
       tap(data => this.personnel.set(data))
     );
   }
 
-  create(data: Omit<Personnel, 'id' | 'createdAt'>): Observable<Personnel> {
+  create(data: Omit<Personnel, 'id' | 'createdAt'> & { password?: string }): Observable<Personnel> {
     if (this.USE_MOCK) {
       const newItem: Personnel = { ...data, id: `p${Date.now()}`, createdAt: new Date().toISOString().split('T')[0], avatarInitials: `${data.firstName[0]}${data.lastName[0]}`.toUpperCase() };
       this.mockData = [...this.mockData, newItem];
@@ -64,12 +67,16 @@ export class PersonnelService {
     const payload = {
       nombre:  `${data.firstName} ${data.lastName}`.trim(),
       email:   data.email,
-      password: 'MagicDoors2024!', // default password — admin should change it
+      password: data.password || 'MagicDoors2024!', // default password — admin should change it
       rol_id:  rolMap[data.role] ?? 2,
     };
+    console.log('📤 POST /registro con payload:', payload);
     return this.http.post<any>(`${this.API_URL}/registro`, payload).pipe(
       map(mapUsuario),
-      tap(item => this.personnel.update(list => [...list, item]))
+      tap(item => {
+        console.log('✅ Respuesta /registro:', item);
+        this.personnel.update(list => [...list, item]);
+      })
     );
   }
 
@@ -99,7 +106,7 @@ export class PersonnelService {
       return of(undefined).pipe(delay(300));
     }
     return this.http.delete<void>(`${this.API_URL}/${id}`).pipe(
-      tap(() => this.personnel.update(list => list.filter(p => p.id !== id)))
+      tap(() => this.personnel.update(list => list.map(p => p.id === id ? { ...p, status: 'inactive' } : p)))
     );
   }
 }

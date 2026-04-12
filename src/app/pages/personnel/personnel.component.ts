@@ -1,3 +1,4 @@
+// src/app/pages/personnel/personnel.component.ts
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { Personnel, PersonnelRole, ROLE_LABELS } from '../../core/models/personnel.model';
@@ -21,6 +22,7 @@ export class PersonnelComponent implements OnInit {
   showModal   = signal(false);
   editingItem = signal<Personnel | null>(null);
   saveLoading = signal(false);
+  errorMsg    = signal('');
   deleteId    = signal<string | null>(null);
 
   roles: { value: PersonnelRole | ''; label: string }[] = [
@@ -34,7 +36,7 @@ export class PersonnelComponent implements OnInit {
 
   roleLabels = ROLE_LABELS;
 
-  formData: Partial<Personnel> = this.emptyForm();
+  formData: Partial<Personnel & { password?: string }> = this.emptyForm();
 
   filtered = computed(() => {
     const q    = this.searchQuery().toLowerCase();
@@ -50,13 +52,14 @@ export class PersonnelComponent implements OnInit {
     this.service.getAll().subscribe(() => this.loading.set(false));
   }
 
-  private emptyForm(): Partial<Personnel> {
-    return { firstName: '', lastName: '', email: '', phone: '', role: 'teacher', department: '', status: 'active' };
+  private emptyForm(): Partial<Personnel & { password?: string }> {
+    return { firstName: '', lastName: '', email: '', phone: '', role: 'teacher', department: '', status: 'active', password: '' };
   }
 
   openCreate(): void {
     this.editingItem.set(null);
     this.formData = this.emptyForm();
+    this.errorMsg.set('');
     this.showModal.set(true);
   }
 
@@ -72,17 +75,35 @@ export class PersonnelComponent implements OnInit {
   }
 
   onSave(form: NgForm): void {
-    if (form.invalid || this.saveLoading()) return;
+    console.log('onSave llamado');
+    console.log('¿Formulario inválido?', form.invalid);
+    console.log('Valores del formulario:', form.value);
+
+    if (form.invalid || this.saveLoading()) {
+      this.errorMsg.set('Por favor, revisa que todos los campos requeridos y el formato del correo sean correctos.');
+      console.error('❌ Formulario inválido:', form.errors);
+      return;
+    }
+    this.errorMsg.set('');
     this.saveLoading.set(true);
 
     const editing = this.editingItem();
     const obs = editing
       ? this.service.update(editing.id, this.formData)
-      : this.service.create(this.formData as Omit<Personnel, 'id' | 'createdAt'>);
+      : this.service.create(this.formData as Omit<Personnel, 'id' | 'createdAt'> & { password?: string });
 
     obs.subscribe({
-      next: () => { this.saveLoading.set(false); this.closeModal(); },
-      error: () => this.saveLoading.set(false),
+      next: () => { 
+        console.log('✅ Guardado exitosamente');
+        this.saveLoading.set(false); 
+        this.closeModal(); 
+      },
+      error: (err: any) => {
+        this.saveLoading.set(false);
+        const errorMessage = err.error?.error || err.message || 'Error al guardar.';
+        console.error('❌ Error al guardar:', err, 'Mensaje:', errorMessage);
+        this.errorMsg.set(errorMessage);
+      },
     });
   }
 

@@ -1,3 +1,4 @@
+// src/app/core/models/personnel.model.ts
 export type PersonnelRole = 'teacher' | 'director' | 'coordinator' | 'cleaning' | 'admin';
 
 export interface Personnel {

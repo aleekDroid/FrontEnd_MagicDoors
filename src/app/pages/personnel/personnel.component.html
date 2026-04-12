@@ -1,3 +1,4 @@
+<!-- src/app/pages/personnel/personnel.component.html -->
 <div class="page-wrapper">
 
   <!-- Page header -->
@@ -113,11 +114,11 @@
           <div class="form-row">
             <div class="form-group">
               <label>Nombre(s)</label>
-              <input class="form-control" name="firstName" [(ngModel)]="formData.firstName" required placeholder="Laura" />
+              <input class="form-control" name="firstName" [(ngModel)]="formData.firstName" required placeholder="Nombre" />
             </div>
             <div class="form-group">
               <label>Apellido(s)</label>
-              <input class="form-control" name="lastName" [(ngModel)]="formData.lastName" required placeholder="Sánchez" />
+              <input class="form-control" name="lastName" [(ngModel)]="formData.lastName" required placeholder="Apellido" />
             </div>
           </div>
           <div class="form-group">
@@ -151,10 +152,21 @@
               </select>
             </div>
           </div>
+          @if (!editingItem()) {
+            <div class="form-group">
+              <label>Contraseña inicial</label>
+              <input class="form-control" type="password" name="password" [(ngModel)]="formData.password" required placeholder="Contraseña segura" />
+            </div>
+          }
         </div>
+
+        @if (errorMsg()) {
+          <div class="error-message">{{ errorMsg() }}</div>
+        }
 
         <div class="modal-form-footer">
           <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancelar</button>
+          <p style="color: red; font-size: 12px;">Estado del form inválido: {{ personForm.invalid }}</p>
           <button type="submit" class="btn btn-primary" [disabled]="personForm.invalid || saveLoading()">
             @if (saveLoading()) { <span class="spinner-sm"></span> }
             {{ editingItem() ? 'Guardar cambios' : 'Agregar' }}
