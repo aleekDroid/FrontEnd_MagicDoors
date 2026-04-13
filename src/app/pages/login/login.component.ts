@@ -43,14 +43,10 @@ export class LoginComponent {
         this.loading.set(false);
         this.router.navigate(['/home']);
       },
-      error: (err: Error) => {
+      error: (err: any) => {
         this.loading.set(false);
-        this.errorMsg.set(err.message ?? 'Error al iniciar sesión.');
+        this.errorMsg.set(err.error?.mensaje || err.message || 'Error al iniciar sesión.');
       },
     });
   }
-
-  // Demo fill helpers
-  fillAdmin(): void { this.form.patchValue({ email: 'admin@gmail.com',  password: 'admin123' }); }
-  fillUser():  void { this.form.patchValue({ email: 'juan@escuela.edu',   password: 'user123'  }); }
 }

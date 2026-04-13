@@ -1,6 +1,8 @@
 <!-- src/app/pages/home/classroom-modal/classroom-modal.component.html -->
+<!-- Reglas anti-bug: stopPropagation en modal-card, novalidate en form, type="button" en botones -->
+
 <div class="modal-overlay" (click)="onOverlayClick($event)" role="dialog" aria-modal="true">
-  <div class="modal-card classroom-modal">
+  <div class="modal-card classroom-modal" (click)="$event.stopPropagation()">
 
     <!-- ── Header ──────────────────────────────────────────────────────────── -->
     <div class="modal-header" [class]="'header-' + classroom().status">
@@ -15,7 +17,7 @@
       </div>
       <div class="header-actions">
         <span class="badge" [class]="'badge-' + classroom().status">{{ statusLabel() }}</span>
-        <button class="btn btn-icon close-btn" (click)="close.emit()" aria-label="Cerrar">
+        <button type="button" class="btn btn-icon close-btn" (click)="close.emit()" aria-label="Cerrar">
           <span class="material-symbols-rounded">close</span>
         </button>
       </div>
@@ -24,39 +26,30 @@
     <!-- ── Body ────────────────────────────────────────────────────────────── -->
     <div class="modal-body">
 
-      <!-- ── Sesión activa ─────────────────────────────────────────────────── -->
+      <!-- Sesión activa -->
       @if (classroom().status === 'active' && session) {
         <div class="session-info">
           <h3 class="section-title">
-            <span class="material-symbols-rounded">class</span>
-            Sesión actual
+            <span class="material-symbols-rounded">class</span>Sesión actual
           </h3>
           <div class="info-grid">
             <div class="info-item">
-              <span class="info-label">
-                <span class="material-symbols-rounded">person</span>Docente
-              </span>
+              <span class="info-label"><span class="material-symbols-rounded">person</span>Docente</span>
               <span class="info-value">{{ session.teacherName }}</span>
             </div>
             <div class="info-item">
-              <span class="info-label">
-                <span class="material-symbols-rounded">menu_book</span>Materia
-              </span>
+              <span class="info-label"><span class="material-symbols-rounded">menu_book</span>Materia</span>
               <span class="info-value">
                 {{ session.subject }}
                 <span class="code-chip">{{ session.subjectCode }}</span>
               </span>
             </div>
             <div class="info-item">
-              <span class="info-label">
-                <span class="material-symbols-rounded">groups</span>Grupo
-              </span>
+              <span class="info-label"><span class="material-symbols-rounded">groups</span>Grupo</span>
               <span class="info-value">{{ session.group }}</span>
             </div>
             <div class="info-item">
-              <span class="info-label">
-                <span class="material-symbols-rounded">schedule</span>Horario
-              </span>
+              <span class="info-label"><span class="material-symbols-rounded">schedule</span>Horario</span>
               <span class="info-value">
                 {{ session.startTime }} – {{ session.endTime }}
                 <span class="schedule-days">{{ session.schedule }}</span>
@@ -65,145 +58,125 @@
           </div>
         </div>
 
-      <!-- ── Aula libre + formulario de sesión ──────────────────────────────── -->
+      <!-- Aula libre -->
       } @else if (classroom().status === 'inactive') {
 
         @if (!showSessionForm()) {
-          <!-- Estado libre por defecto -->
           <div class="empty-room-msg">
             <span class="material-symbols-rounded">door_open</span>
             <p>El aula se encuentra <strong>libre</strong> en este momento.</p>
             <p class="sub">No hay ninguna clase programada actualmente.</p>
           </div>
-
         } @else {
-          <!-- Formulario de asignación de sesión -->
+          <!-- Formulario de sesión -->
           <div class="session-form-wrapper">
             <h3 class="section-title">
-              <span class="material-symbols-rounded">edit_calendar</span>
-              Asignar clase
+              <span class="material-symbols-rounded">edit_calendar</span>Asignar clase
             </h3>
 
             @if (listsLoading()) {
               <div class="form-loading">
-                <span class="spinner-sm"></span>
-                <span>Cargando opciones…</span>
+                <span class="spinner-sm"></span><span>Cargando opciones…</span>
               </div>
             } @else {
-              <div class="session-form">
+              <form novalidate>
+                <div class="session-form">
 
-                <!-- Profesor -->
-                <div class="form-field">
-                  <label class="form-label">
-                    <span class="material-symbols-rounded">person</span>
-                    Docente
-                  </label>
-                  <select class="form-select" (change)="onProfesorChange($event)">
-                    <option value="0" disabled [selected]="sessionForm.profesor_id === 0">
-                      — Selecciona un docente —
-                    </option>
-                    @for (p of professors(); track p.id) {
-                      @if (p.status === 'active') {
-                        <option [value]="p.id">{{ p.firstName }} {{ p.lastName }}</option>
-                      }
-                    }
-                  </select>
-                </div>
-
-                <!-- Materia -->
-                <div class="form-field">
-                  <label class="form-label">
-                    <span class="material-symbols-rounded">menu_book</span>
-                    Materia
-                  </label>
-                  <select class="form-select" (change)="onMateriaChange($event)">
-                    <option value="0" disabled [selected]="sessionForm.materia_id === 0">
-                      — Selecciona una materia —
-                    </option>
-                    @for (m of subjects(); track m.id) {
-                      @if (m.status === 'active') {
-                        <option [value]="m.id">{{ m.name }} ({{ m.code }})</option>
-                      }
-                    }
-                  </select>
-                </div>
-
-                <!-- Grupo -->
-                <div class="form-field">
-                  <label class="form-label">
-                    <span class="material-symbols-rounded">groups</span>
-                    Grupo
-                  </label>
-                  <select class="form-select" (change)="onGrupoChange($event)">
-                    <option value="0" disabled [selected]="sessionForm.grupo_id === 0">
-                      — Selecciona un grupo —
-                    </option>
-                    @for (g of groups(); track g.id) {
-                      @if (g.status === 'active') {
-                        <option [value]="g.id">{{ g.name }} — {{ g.grade }}</option>
-                      }
-                    }
-                  </select>
-                </div>
-
-                <!-- Horario: fila de dos columnas -->
-                <div class="form-row">
                   <div class="form-field">
                     <label class="form-label">
-                      <span class="material-symbols-rounded">login</span>
-                      Hora inicio
+                      <span class="material-symbols-rounded">person</span>Docente
                     </label>
-                    <input
-                      class="form-input"
-                      type="time"
-                      [(ngModel)]="sessionForm.hora_inicio"
-                      name="hora_inicio"
-                    />
+                    <select class="form-select" (change)="onProfesorChange($event)">
+                      <option value="0" [selected]="sessionForm.profesor_id === 0">— Selecciona un docente —</option>
+                      @for (p of professors(); track p.id) {
+                        @if (p.status === 'active') {
+                          <option [value]="p.id">{{ p.firstName }} {{ p.lastName }}</option>
+                        }
+                      }
+                    </select>
                   </div>
+
                   <div class="form-field">
                     <label class="form-label">
-                      <span class="material-symbols-rounded">logout</span>
-                      Hora fin
+                      <span class="material-symbols-rounded">menu_book</span>Materia
                     </label>
-                    <input
-                      class="form-input"
-                      type="time"
-                      [(ngModel)]="sessionForm.hora_fin"
-                      name="hora_fin"
-                    />
+                    <select class="form-select" (change)="onMateriaChange($event)">
+                      <option value="0" [selected]="sessionForm.materia_id === 0">— Selecciona una materia —</option>
+                      @for (m of subjects(); track m.id) {
+                        @if (m.status === 'active') {
+                          <option [value]="m.id">{{ m.name }} ({{ m.code }})</option>
+                        }
+                      }
+                    </select>
                   </div>
-                </div>
 
-                <!-- Días -->
-                <div class="form-field">
-                  <label class="form-label">
-                    <span class="material-symbols-rounded">calendar_today</span>
-                    Días de la semana
-                  </label>
-                  <input
-                    class="form-input"
-                    type="text"
-                    [(ngModel)]="sessionForm.dias_semana"
-                    name="dias_semana"
-                    placeholder="Ej: Lun, Mié, Vie"
-                  />
-                </div>
+                  <div class="form-field">
+                    <label class="form-label">
+                      <span class="material-symbols-rounded">groups</span>Grupo
+                    </label>
+                    <select class="form-select" (change)="onGrupoChange($event)">
+                      <option value="0" [selected]="sessionForm.grupo_id === 0">— Selecciona un grupo —</option>
+                      @for (g of groups(); track g.id) {
+                        @if (g.status === 'active') {
+                          <option [value]="g.id">{{ g.name }} — {{ g.grade }}</option>
+                        }
+                      }
+                    </select>
+                  </div>
 
-              </div><!-- /session-form -->
+                  <!-- Días — chips toggle en lugar de texto libre -->
+                  <div class="form-field">
+                    <label class="form-label">
+                      <span class="material-symbols-rounded">calendar_today</span>
+                      Días de la semana
+                    </label>
+                    <div class="dias-grid">
+                      @for (dia of dias; track dia.valor) {
+                        <button
+                          type="button"
+                          class="dia-chip"
+                          [class.dia-chip--selected]="isDiaSeleccionado(dia.valor)"
+                          (click)="toggleDia(dia.valor)"
+                          [title]="dia.etiqueta"
+                        >{{ dia.abrev }}</button>
+                      }
+                    </div>
+                  </div>
+
+                  <!-- Horario con rango 07:00–22:00 -->
+                  <div class="form-row">
+                    <div class="form-field">
+                      <label class="form-label">
+                        <span class="material-symbols-rounded">login</span>Hora inicio
+                      </label>
+                      <input class="form-input" type="time"
+                             min="07:00" max="22:00"
+                             [(ngModel)]="sessionForm.hora_inicio" name="hora_inicio" />
+                    </div>
+                    <div class="form-field">
+                      <label class="form-label">
+                        <span class="material-symbols-rounded">logout</span>Hora fin
+                      </label>
+                      <input class="form-input" type="time"
+                             min="07:00" max="22:00"
+                             [(ngModel)]="sessionForm.hora_fin" name="hora_fin" />
+                    </div>
+                  </div>
+
+                </div>
+              </form>
             }
 
-            <!-- Error de validación -->
             @if (formError()) {
               <div class="alert-error">
-                <span class="material-symbols-rounded">error</span>
-                {{ formError() }}
+                <span class="material-symbols-rounded">error</span>{{ formError() }}
               </div>
             }
 
-          </div><!-- /session-form-wrapper -->
+          </div>
         }
 
-      <!-- ── Mantenimiento ──────────────────────────────────────────────────── -->
+      <!-- Mantenimiento -->
       } @else {
         <div class="empty-room-msg maintenance">
           <span class="material-symbols-rounded">construction</span>
@@ -212,134 +185,90 @@
         </div>
       }
 
-      <!-- ── QR generado ─────────────────────────────────────────────────────── -->
       @if (qrDataUrl()) {
         <div class="qr-section">
           <div class="qr-header">
-            <h3>
-              <span class="material-symbols-rounded">qr_code_2</span>
-              Código QR de acceso
-            </h3>
-            <button class="btn btn-ghost btn-sm" (click)="downloadQr()">
-              <span class="material-symbols-rounded">download</span>
-              Descargar
+            <h3><span class="material-symbols-rounded">qr_code_2</span>Código QR de acceso</h3>
+            <button type="button" class="btn btn-ghost btn-sm" (click)="downloadQr()">
+              <span class="material-symbols-rounded">download</span>Descargar
             </button>
           </div>
           <div class="qr-wrapper">
             <img [src]="qrDataUrl()!" [alt]="'QR de acceso para ' + classroom().label" />
           </div>
-          <p class="qr-hint">El docente puede escanear este código para registrar su entrada al aula.</p>
+          <p class="qr-hint">El docente escanea este código para registrar su entrada al aula.</p>
         </div>
       }
 
       @if (qrError()) {
         <div class="alert-error">
-          <span class="material-symbols-rounded">error</span>
-          {{ qrError() }}
+          <span class="material-symbols-rounded">error</span>{{ qrError() }}
         </div>
       }
 
     </div><!-- /modal-body -->
 
-    <!-- ── Footer / Actions ────────────────────────────────────────────────── -->
+    <!-- ── Footer ──────────────────────────────────────────────────────────── -->
     <div class="modal-footer">
 
-      <!-- Botones cuando el formulario NO está visible -->
       @if (!showSessionForm()) {
 
-        <!-- Abrir (solo admin, aula no activa) -->
         @if (isAdmin() && classroom().status !== 'active') {
-          <button
-            class="btn btn-primary"
-            (click)="forceOpen()"
-            [disabled]="actionLoading() !== null"
-            title="Abrir el aula forzosamente"
-          >
-            @if (actionLoading() === 'open') {
-              <span class="spinner-sm"></span>
-            } @else {
-              <span class="material-symbols-rounded">door_open</span>
-            }
+          <button type="button" class="btn btn-primary"
+                  [disabled]="actionLoading() !== null" (click)="forceOpen()">
+            @if (actionLoading() === 'open') { <span class="spinner-sm"></span> }
+            @else { <span class="material-symbols-rounded">door_open</span> }
             Abrir aula
           </button>
         }
 
-        <!-- Cerrar (solo admin, aula activa) -->
         @if (isAdmin() && classroom().status === 'active') {
-          <button
-            class="btn btn-danger"
-            (click)="forceClose()"
-            [disabled]="actionLoading() !== null"
-            title="Cerrar el aula forzosamente"
-          >
-            @if (actionLoading() === 'close') {
-              <span class="spinner-sm"></span>
-            } @else {
-              <span class="material-symbols-rounded">lock</span>
-            }
+          <button type="button" class="btn btn-danger"
+                  [disabled]="actionLoading() !== null" (click)="forceClose()">
+            @if (actionLoading() === 'close') { <span class="spinner-sm"></span> }
+            @else { <span class="material-symbols-rounded">lock</span> }
             Cerrar aula
           </button>
         }
 
-        <!-- Asignar clase (solo admin, aula libre) -->
         @if (isAdmin() && classroom().status === 'inactive') {
-          <button
-            class="btn btn-blue"
-            (click)="openSessionForm()"
-            [disabled]="actionLoading() !== null"
-            title="Programar clase en esta aula"
-          >
+          <button type="button" class="btn btn-blue"
+                  [disabled]="actionLoading() !== null" (click)="openSessionForm()">
             <span class="material-symbols-rounded">edit_calendar</span>
             Asignar clase
           </button>
         }
 
-        <!-- Generar QR (todos, cualquier estado) -->
-        <button
-          class="btn btn-amber"
-          (click)="generateQr()"
-          [disabled]="actionLoading() !== null"
-          title="Generar código QR para el docente"
-        >
-          @if (actionLoading() === 'qr') {
-            <span class="spinner-sm"></span>
-          } @else {
-            <span class="material-symbols-rounded">qr_code</span>
-          }
+        <button type="button" class="btn btn-amber"
+                [disabled]="actionLoading() !== null" (click)="generateQr()">
+          @if (actionLoading() === 'qr') { <span class="spinner-sm"></span> }
+          @else { <span class="material-symbols-rounded">qr_code</span> }
           Generar QR
         </button>
 
-        <button class="btn btn-secondary" (click)="close.emit()">
-          Cancelar
-        </button>
+        <button type="button" class="btn btn-secondary" (click)="close.emit()">Cancelar</button>
 
       } @else {
-        <!-- Botones cuando el formulario de sesión SÍ está visible -->
-        <button
-          class="btn btn-primary"
-          (click)="saveSession()"
-          [disabled]="actionLoading() === 'session' || listsLoading()"
-        >
+
+        <button type="button" class="btn btn-primary"
+                [disabled]="actionLoading() === 'session' || listsLoading()"
+                (click)="saveSession()">
           @if (actionLoading() === 'session') {
-            <span class="spinner-sm"></span>
-            Guardando…
+            <span class="spinner-sm"></span>Guardando…
           } @else {
-            <span class="material-symbols-rounded">check</span>
-            Guardar sesión
+            <span class="material-symbols-rounded">check</span>Guardar sesión
           }
         </button>
 
-        <button
-          class="btn btn-secondary"
-          (click)="cancelSessionForm()"
-          [disabled]="actionLoading() === 'session'"
-        >
-          <span class="material-symbols-rounded">arrow_back</span>
-          Volver
+        <button type="button" class="btn btn-secondary"
+                [disabled]="actionLoading() === 'session'"
+                (click)="cancelSessionForm()">
+          <span class="material-symbols-rounded">arrow_back</span>Volver
         </button>
+
       }
 
-    </div><!-- /modal-footer -->
+    </div>
 
   </div>
 </div>

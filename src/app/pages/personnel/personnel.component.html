@@ -1,7 +1,5 @@
-<!-- src/app/pages/personnel/personnel.component.html -->
 <div class="page-wrapper">
 
-  <!-- Page header -->
   <div class="page-header">
     <div class="page-title">
       <h1>Personal</h1>
@@ -13,7 +11,6 @@
     </button>
   </div>
 
-  <!-- Filters bar -->
   <div class="filters-bar">
     <div class="search-bar">
       <span class="material-symbols-rounded">search</span>
@@ -32,7 +29,6 @@
     <span class="results-count">{{ filtered().length }} resultado(s)</span>
   </div>
 
-  <!-- Table -->
   @if (loading()) {
     <div class="loading-state">
       <div class="loading-spinner"></div>
@@ -84,6 +80,13 @@
                   <button class="btn btn-icon" title="Editar" (click)="openEdit(person)">
                     <span class="material-symbols-rounded">edit</span>
                   </button>
+
+                  @if (person.role === 'teacher') {
+                    <button class="btn btn-icon" title="Ver QR de acceso" (click)="openQr(person)">
+                      <span class="material-symbols-rounded" style="color: var(--color-amber-dark);">qr_code</span>
+                    </button>
+                  }
+
                   <button class="btn btn-icon danger-icon" title="Eliminar" (click)="confirmDelete(person.id)">
                     <span class="material-symbols-rounded">delete</span>
                   </button>
@@ -95,54 +98,68 @@
       </table>
     </div>
   }
-
 </div>
 
-<!-- ── Create / Edit Modal ──────────────────────────────────────────────────── -->
 @if (showModal()) {
   <div class="modal-overlay" (click)="closeModal()">
     <div class="modal-card" (click)="$event.stopPropagation()">
+
       <div class="modal-header-simple">
         <h2>{{ editingItem() ? 'Editar' : 'Agregar' }} personal</h2>
-        <button class="btn btn-icon" (click)="closeModal()">
+        <button type="button" class="btn btn-icon" (click)="closeModal()">
           <span class="material-symbols-rounded">close</span>
         </button>
       </div>
 
-      <form #personForm="ngForm" (ngSubmit)="onSave(personForm)" novalidate>
+      <form #personForm="ngForm" novalidate>
         <div class="modal-form-body">
+
           <div class="form-row">
             <div class="form-group">
               <label>Nombre(s)</label>
-              <input class="form-control" name="firstName" [(ngModel)]="formData.firstName" required placeholder="Nombre" />
+              <input class="form-control" name="firstName"
+                     [(ngModel)]="formData.firstName" required
+                     placeholder="Nombre" />
             </div>
             <div class="form-group">
               <label>Apellido(s)</label>
-              <input class="form-control" name="lastName" [(ngModel)]="formData.lastName" required placeholder="Apellido" />
+              <input class="form-control" name="lastName"
+                     [(ngModel)]="formData.lastName" required
+                     placeholder="Apellido" />
             </div>
           </div>
+
           <div class="form-group">
             <label>Correo electrónico</label>
-            <input class="form-control" type="email" name="email" [(ngModel)]="formData.email" required placeholder="usuario@escuela.edu" />
+            <input class="form-control" type="email" name="email"
+                   [(ngModel)]="formData.email" required
+                   placeholder="usuario@escuela.edu" />
           </div>
+
           <div class="form-row">
             <div class="form-group">
               <label>Teléfono</label>
-              <input class="form-control" name="phone" [(ngModel)]="formData.phone" placeholder="442-100-0000" />
+              <input class="form-control" name="phone"
+                     [(ngModel)]="formData.phone"
+                     placeholder="442-100-0000" />
             </div>
             <div class="form-group">
               <label>Rol</label>
-              <select class="form-control" name="role" [(ngModel)]="formData.role" required>
+              <select class="form-control" name="role"
+                      [(ngModel)]="formData.role" required>
                 @for (r of roles.slice(1); track r.value) {
                   <option [value]="r.value">{{ r.label }}</option>
                 }
               </select>
             </div>
           </div>
+
           <div class="form-row">
             <div class="form-group">
               <label>Departamento / Área</label>
-              <input class="form-control" name="department" [(ngModel)]="formData.department" placeholder="Matemáticas" />
+              <input class="form-control" name="department"
+                     [(ngModel)]="formData.department"
+                     placeholder="Matemáticas" />
             </div>
             <div class="form-group">
               <label>Estado</label>
@@ -152,48 +169,123 @@
               </select>
             </div>
           </div>
+
           @if (!editingItem()) {
             <div class="form-group">
               <label>Contraseña inicial</label>
-              <input class="form-control" type="password" name="password" [(ngModel)]="formData.password" required placeholder="Contraseña segura" />
+              <input class="form-control" type="password" name="password"
+                     [(ngModel)]="formData.password" required
+                     placeholder="Contraseña segura" />
             </div>
           }
+
         </div>
 
         @if (errorMsg()) {
-          <div class="error-message">{{ errorMsg() }}</div>
-        }
-
-        @if (invalidFields().length) {
-          <div class="error-message">
-            Campos invalidos detectados por Angular: {{ invalidFields().join(', ') }}
+          <div class="alert-error">
+            <span class="material-symbols-rounded">error</span>
+            {{ errorMsg() }}
           </div>
         }
 
         <div class="modal-form-footer">
-          <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancelar</button>
-          <button type="button" class="btn btn-primary" (click)="onSave(personForm)" [disabled]="saveLoading()">
+          <button type="button" class="btn btn-secondary" (click)="closeModal()">
+            Cancelar
+          </button>
+          <button type="button" class="btn btn-primary"
+                  [disabled]="saveLoading()"
+                  (click)="onSave(personForm)">
             @if (saveLoading()) { <span class="spinner-sm"></span> }
             {{ editingItem() ? 'Guardar cambios' : 'Agregar' }}
           </button>
         </div>
       </form>
+
     </div>
   </div>
 }
 
-<!-- ── Delete confirm ───────────────────────────────────────────────────────── -->
+@if (showQrModal()) {
+  <div class="modal-overlay" (click)="closeQrModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+
+      <div class="modal-header-simple">
+        <div>
+          <h2>Código QR de acceso</h2>
+          @if (qrTeacher()) {
+            <p class="room-code" style="margin-top: 4px; color: var(--color-text-secondary);">
+              {{ qrTeacher()!.firstName }} {{ qrTeacher()!.lastName }}
+            </p>
+          }
+        </div>
+        <button type="button" class="btn btn-icon" (click)="closeQrModal()">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+      </div>
+
+      <div class="modal-form-body" style="text-align: center;">
+
+        @if (qrLoading()) {
+          <div style="padding: 2rem; color: var(--color-text-muted); display: flex; flex-direction: column; align-items: center; gap: 10px;">
+            <span class="spinner-sm" style="width: 24px; height: 24px; border-top-color: var(--color-blue);"></span>
+            <span>Generando QR seguro…</span>
+          </div>
+        } @else if (qrError()) {
+          <div class="alert-error" style="text-align: left;">
+            <span class="material-symbols-rounded">error</span>
+            {{ qrError() }}
+          </div>
+        } @else if (qrDataUrl()) {
+          <div>
+            <img [src]="qrDataUrl()!" alt="QR de acceso del docente" style="margin: 0 auto; border-radius: 8px; border: 1px solid var(--color-border);" />
+
+            @if (qrExpiresAt()) {
+              <div style="margin-top: 1rem; font-size: 0.9rem; color: var(--color-text-secondary);">
+                <span class="material-symbols-rounded" style="font-size: 16px; vertical-align: text-bottom;">schedule</span>
+                Válido hasta: <strong>{{ qrExpiresAt() }}</strong>
+              </div>
+            }
+
+            <p style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--color-text-muted); max-width: 300px; margin-inline: auto;">
+              El docente escanea este código con el lector del aula para registrar su acceso. Caduca en 24 horas.
+            </p>
+          </div>
+        }
+
+      </div>
+
+      <div class="modal-form-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeQrModal()">
+          Cerrar
+        </button>
+        <button type="button" class="btn btn-amber"
+                [disabled]="!qrDataUrl() || qrLoading()"
+                (click)="downloadQr()">
+          <span class="material-symbols-rounded">download</span>
+          Descargar PNG
+        </button>
+      </div>
+
+    </div>
+  </div>
+}
+
 @if (deleteId()) {
-  <div class="modal-overlay" (click)="$event.target === $event.currentTarget && cancelDelete()">
-    <div class="modal-card confirm-modal">
+  <div class="modal-overlay" (click)="cancelDelete()">
+    <div class="modal-card confirm-modal" (click)="$event.stopPropagation()">
       <div class="confirm-icon">
         <span class="material-symbols-rounded">delete_forever</span>
       </div>
-      <h3>¿Eliminar registro?</h3>
-      <p>Esta acción no se puede deshacer. El registro del personal será eliminado permanentemente.</p>
+      <h3>Confirmar eliminación</h3>
+      <p>¿Estás seguro de que deseas desactivar este usuario? Esta acción no se puede deshacer.</p>
       <div class="confirm-actions">
-        <button class="btn btn-secondary" (click)="cancelDelete()">Cancelar</button>
-        <button class="btn btn-danger" (click)="onDelete()">Sí, eliminar</button>
+        <button type="button" class="btn btn-secondary" (click)="cancelDelete()">
+          Cancelar
+        </button>
+        <button type="button" class="btn btn-danger" (click)="onDelete()">
+          <span class="material-symbols-rounded">delete</span>
+          Desactivar
+        </button>
       </div>
     </div>
   </div>

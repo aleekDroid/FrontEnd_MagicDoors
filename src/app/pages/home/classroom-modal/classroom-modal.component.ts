@@ -1,7 +1,6 @@
-// src/app/pages/home/classroom-modal/classroom-modal.component.ts
 import {
-  Component, ElementRef, inject, input, OnInit,
-  output, signal, computed, ViewChild,
+  Component, inject, input, OnInit,
+  output, signal, computed,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Classroom } from '../../../core/models/classroom.model';
@@ -19,10 +18,25 @@ export interface SessionFormData {
   materia_codigo:  string;
   grupo_id:        number;
   grupo_nombre:    string;
-  hora_inicio:     string;  // 'HH:MM'
+  hora_inicio:     string;
   hora_fin:        string;
-  dias_semana:     string;
+  dias_semana:     number[]; 
 }
+
+export interface DiaOption {
+  valor: number;
+  etiqueta: string;
+  abrev: string;
+}
+
+export const DIAS: DiaOption[] = [
+  { valor: 1, etiqueta: 'Lunes',     abrev: 'L'  },
+  { valor: 2, etiqueta: 'Martes',    abrev: 'M'  },
+  { valor: 3, etiqueta: 'Miércoles', abrev: 'Mi' },
+  { valor: 4, etiqueta: 'Jueves',    abrev: 'J'  },
+  { valor: 5, etiqueta: 'Viernes',   abrev: 'V'  },
+  { valor: 6, etiqueta: 'Sábado',    abrev: 'S'  },
+];
 
 @Component({
   selector:    'app-classroom-modal',
@@ -42,40 +56,35 @@ export class ClassroomModalComponent implements OnInit {
   private subjectService   = inject(SubjectService);
   private groupService     = inject(GroupService);
 
-  // ── State ──────────────────────────────────────────────────────────────────
-  isAdmin       = computed(() => this.auth.isAdmin());
-  actionLoading = signal<'open' | 'close' | 'qr' | 'session' | null>(null);
-  qrDataUrl     = signal<string | null>(null);
-  qrError       = signal<string | null>(null);
+  isAdmin         = computed(() => this.auth.isAdmin());
+  actionLoading   = signal<'open' | 'close' | 'qr' | 'session' | null>(null);
+  qrDataUrl       = signal<string | null>(null);
+  qrError         = signal<string | null>(null);
   showSessionForm = signal(false);
+  formError       = signal<string | null>(null);
+  listsLoading    = signal(false);
 
-  // Listas para los selects del formulario de sesión
   professors = this.personnelService.personnel;
   subjects   = this.subjectService.subjects;
   groups     = this.groupService.groups;
 
-  listsLoading = signal(false);
+  readonly dias = DIAS;
 
-  // Formulario de sesión (ngModel two-way binding)
-  sessionForm: SessionFormData = {
-    profesor_id:     0,
-    profesor_nombre: '',
-    materia_id:      0,
-    materia_nombre:  '',
-    materia_codigo:  '',
-    grupo_id:        0,
-    grupo_nombre:    '',
-    hora_inicio:     '',
-    hora_fin:        '',
-    dias_semana:     'Lun, Mié, Vie',
-  };
+  // Signal mutable de días seleccionados — se maneja con toggleDia()
+  diasSeleccionados = signal<Set<number>>(new Set());
 
-  formError = signal<string | null>(null);
+  sessionForm: Omit<SessionFormData, 'dias_semana'> = this.emptySessionForm();
 
-  @ViewChild('qrCanvas') qrCanvas!: ElementRef<HTMLCanvasElement>;
+  private emptySessionForm() {
+    return {
+      profesor_id: 0,  profesor_nombre: '',
+      materia_id:  0,  materia_nombre:  '', materia_codigo: '',
+      grupo_id:    0,  grupo_nombre:    '',
+      hora_inicio: '', hora_fin: '',
+    };
+  }
 
   ngOnInit(): void {
-    // Pre-cargar las listas en paralelo si el formulario pudiera mostrarse
     if (this.auth.isAdmin() && this.classroom().status === 'inactive') {
       this.loadLists();
     }
@@ -90,7 +99,6 @@ export class ClassroomModalComponent implements OnInit {
     this.groupService.getAll().subscribe({ next: done, error: done });
   }
 
-  // ── Helpers ────────────────────────────────────────────────────────────────
   get session() { return this.classroom().currentSession; }
 
   statusLabel(): string {
@@ -107,18 +115,95 @@ export class ClassroomModalComponent implements OnInit {
     }
   }
 
-  // ── Abrir/Cerrar forzado (solo admin) ──────────────────────────────────────
-  forceToggle(): void {
-    const targetStatus = this.classroom().status === 'active' ? 'inactive' : 'active';
-    const loadingKey   = targetStatus === 'active' ? 'open' : 'close';
-    this.actionLoading.set(loadingKey);
+  // ── Checkbox días ────────────────────────────────────────────────────────────
+  isDiaSeleccionado(valor: number): boolean {
+    return this.diasSeleccionados().has(valor);
+  }
 
-    this.classroomService.updateStatus(this.classroom().id, targetStatus).subscribe({
-      next:  (upd) => { this.actionLoading.set(null); this.updated.emit(upd); },
-      error: ()    => this.actionLoading.set(null),
+  toggleDia(valor: number): void {
+    this.diasSeleccionados.update(prev => {
+      const next = new Set(prev);
+      next.has(valor) ? next.delete(valor) : next.add(valor);
+      return next;
     });
   }
 
+  // ── Select sync ──────────────────────────────────────────────────────────────
+onProfesorChange(event: Event): void {
+    const id = +(event.target as HTMLSelectElement).value;
+    const p  = this.professors().find(p => p.id === String(id)); 
+    if (p) { 
+      this.sessionForm.profesor_id     = +p.id; 
+      this.sessionForm.profesor_nombre = `${p.firstName} ${p.lastName}`.trim(); 
+    }
+  }
+
+  onMateriaChange(event: Event): void {
+    const id = +(event.target as HTMLSelectElement).value;
+    const m  = this.subjects().find(s => +s.id === id);
+    if (m) {
+      this.sessionForm.materia_id     = +m.id;
+      this.sessionForm.materia_nombre = m.name;
+      this.sessionForm.materia_codigo = m.code;
+    }
+  }
+
+  onGrupoChange(event: Event): void {
+    const id = +(event.target as HTMLSelectElement).value;
+    const g  = this.groups().find(g => +g.id === id);
+    if (g) { this.sessionForm.grupo_id = +g.id; this.sessionForm.grupo_nombre = g.name; }
+  }
+
+  // ── Session form ──────────────────────────────────────────────────────────────
+  openSessionForm(): void {
+    this.formError.set(null);
+    this.diasSeleccionados.set(new Set());
+    this.sessionForm = this.emptySessionForm();
+    if (this.professors().length === 0) this.loadLists();
+    this.showSessionForm.set(true);
+  }
+
+  cancelSessionForm(): void {
+    this.showSessionForm.set(false);
+    this.formError.set(null);
+  }
+
+  saveSession(): void {
+    const dias = Array.from(this.diasSeleccionados()).sort((a, b) => a - b);
+
+    if (!this.sessionForm.profesor_id)              return void this.formError.set('Selecciona un docente');
+    if (!this.sessionForm.materia_id)               return void this.formError.set('Selecciona una materia');
+    if (!this.sessionForm.grupo_id)                 return void this.formError.set('Selecciona un grupo');
+    if (dias.length === 0)                          return void this.formError.set('Selecciona al menos un día');
+    if (!this.sessionForm.hora_inicio || !this.sessionForm.hora_fin)
+                                                    return void this.formError.set('Ingresa la hora de inicio y fin');
+    if (this.sessionForm.hora_inicio >= this.sessionForm.hora_fin)
+                                                    return void this.formError.set('La hora de inicio debe ser anterior a la hora de fin');
+
+    this.formError.set(null);
+    this.actionLoading.set('session');
+
+    const payload: SessionFormData = { ...this.sessionForm, dias_semana: dias };
+
+    this.classroomService.activateSession(this.classroom().id, payload).subscribe({
+      next: (upd) => {
+        this.actionLoading.set(null);
+        this.showSessionForm.set(false);
+        this.updated.emit(upd);
+      },
+      error: (err) => {
+        this.actionLoading.set(null);
+        const msg       = err.error?.error ?? 'Error al asignar la sesión';
+        const conflicto = err.error?.dias_conflicto as number[] | undefined;
+        const detalle   = conflicto?.length
+          ? ` — días en conflicto: ${conflicto.map(d => DIAS.find(x => x.valor === +d)?.etiqueta ?? d).join(', ')}`
+          : '';
+        this.formError.set(msg + detalle);
+      },
+    });
+  }
+
+  // ── Abrir / Cerrar forzado ───────────────────────────────────────────────────
   forceOpen(): void {
     this.actionLoading.set('open');
     this.classroomService.updateStatus(this.classroom().id, 'active').subscribe({
@@ -135,90 +220,7 @@ export class ClassroomModalComponent implements OnInit {
     });
   }
 
-  // ── Formulario de sesión ───────────────────────────────────────────────────
-  openSessionForm(): void {
-    this.formError.set(null);
-    // Pre-cargar listas si todavía no se cargaron
-    if (this.professors().length === 0) this.loadLists();
-    this.showSessionForm.set(true);
-  }
-
-  cancelSessionForm(): void {
-    this.showSessionForm.set(false);
-    this.formError.set(null);
-    this.resetForm();
-  }
-
-  onProfesorChange(event: Event): void {
-    const id = +(event.target as HTMLSelectElement).value;
-    const p  = this.professors().find(p => p.id === String(id));
-    if (p) {
-      this.sessionForm.profesor_id     = +p.id;
-      this.sessionForm.profesor_nombre = `${p.firstName} ${p.lastName}`.trim(); 
-    }
-  }
-
-  onMateriaChange(event: Event): void {
-    const id = +(event.target as HTMLSelectElement).value;
-    const m  = this.subjects().find(s => +s.id === id);
-    if (m) {
-      this.sessionForm.materia_id     = +m.id;
-      this.sessionForm.materia_nombre = m.name;
-      this.sessionForm.materia_codigo = m.code;
-    }
-  }
-
-  // Ídem para grupo
-  onGrupoChange(event: Event): void {
-    const id = +(event.target as HTMLSelectElement).value;
-    const g  = this.groups().find(g => +g.id === id);
-    if (g) {
-      this.sessionForm.grupo_id     = +g.id;
-      this.sessionForm.grupo_nombre = g.name;
-    }
-  }
-
-  saveSession(): void {
-    // Validación mínima antes de disparar el request
-    if (!this.sessionForm.profesor_id || !this.sessionForm.materia_id ||
-        !this.sessionForm.grupo_id    || !this.sessionForm.hora_inicio ||
-        !this.sessionForm.hora_fin) {
-      this.formError.set('Completa todos los campos antes de guardar.');
-      return;
-    }
-    if (this.sessionForm.hora_inicio >= this.sessionForm.hora_fin) {
-      this.formError.set('La hora de inicio debe ser anterior a la hora de fin.');
-      return;
-    }
-
-    this.formError.set(null);
-    this.actionLoading.set('session');
-
-    this.classroomService.activateSession(this.classroom().id, this.sessionForm).subscribe({
-      next: (upd) => {
-        this.actionLoading.set(null);
-        this.showSessionForm.set(false);
-        this.resetForm();
-        this.updated.emit(upd);
-      },
-      error: (err) => {
-        this.actionLoading.set(null);
-        this.formError.set(err?.error?.error ?? 'Error al asignar la sesión.');
-      },
-    });
-  }
-
-  private resetForm(): void {
-    this.sessionForm = {
-      profesor_id: 0, profesor_nombre: '',
-      materia_id:  0, materia_nombre:  '', materia_codigo: '',
-      grupo_id:    0, grupo_nombre:    '',
-      hora_inicio: '', hora_fin: '',
-      dias_semana: 'Lun, Mié, Vie',
-    };
-  }
-
-  // ── QR ────────────────────────────────────────────────────────────────────
+  // ── QR del aula ──────────────────────────────────────────────────────────────
   generateQr(): void {
     this.actionLoading.set('qr');
     this.qrDataUrl.set(null);
@@ -234,13 +236,13 @@ export class ClassroomModalComponent implements OnInit {
           });
           this.qrDataUrl.set(url);
         } catch {
-          this.qrError.set('Instala el paquete "qrcode" con: npm install qrcode');
+          this.qrError.set('Instala "qrcode": npm install qrcode');
         }
         this.actionLoading.set(null);
       },
       error: () => {
         this.actionLoading.set(null);
-        this.qrError.set('Error al generar el QR. Intenta de nuevo.');
+        this.qrError.set('Error al generar el QR');
       },
     });
   }
@@ -248,9 +250,7 @@ export class ClassroomModalComponent implements OnInit {
   downloadQr(): void {
     const url = this.qrDataUrl();
     if (!url) return;
-    const a      = document.createElement('a');
-    a.href       = url;
-    a.download   = `qr-${this.classroom().name}.png`;
-    a.click();
+    const a = document.createElement('a');
+    a.href = url; a.download = `qr-${this.classroom().name}.png`; a.click();
   }
 }
