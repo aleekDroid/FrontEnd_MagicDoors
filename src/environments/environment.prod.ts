@@ -1,4 +1,5 @@
+// src/environments/environment.prod.ts
 export const environment = {
   production: true,
-  apiUrl: 'https://tu-backend.escuela.edu/api/v1',
+  apiUrl: 'URL_PENDIENTE_DE_RAILWAY/api', 
 };
