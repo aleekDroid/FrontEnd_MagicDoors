@@ -21,7 +21,7 @@ export interface Anomalia {
   estado_aula_snapshot: string;
 }
 
-// Convierte la clave de BD a un texto legible para el usuario
+// Convierte la clave de BD a un texto legible para el usuario.
 const MOTIVO_LABELS: Record<string, string> = {
   llegada_tarde:           'Llegada fuera de rango',
   fuera_de_ventana:        'Fuera de horario',
@@ -57,6 +57,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   navItems: NavItem[] = [
     { label: 'Panel de Aulas', route: '/home',     icon: 'grid_view'             },
+    { label: 'Horarios',       route: '/horarios', icon: 'calendar_month'        },
     { label: 'Personal',       route: '/personal', icon: 'badge',  adminOnly: true },
     { label: 'Materias',       route: '/materias', icon: 'menu_book'             },
     { label: 'Grupos',         route: '/grupos',   icon: 'groups'                },

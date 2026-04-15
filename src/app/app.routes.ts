@@ -36,6 +36,12 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./pages/groups/groups.component').then(m => m.GroupsComponent),
       },
+      {
+        path: 'horarios',
+        loadComponent: () =>
+          import('./pages/schedules/schedules.component').then(m => m.SchedulesComponent),
+        canActivate: [authGuard],
+      },
       { path: '', redirectTo: 'home', pathMatch: 'full' },
     ],
   },

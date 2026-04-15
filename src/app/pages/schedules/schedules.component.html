@@ -1,0 +1,241 @@
+<!-- src/app/pages/schedules/schedules.component.html -->
+<div class="schedules-page">
+
+  <!-- ── Page header ─────────────────────────────────────────────────────────── -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <div class="page-icon">
+        <span class="material-symbols-rounded">calendar_month</span>
+      </div>
+      <div>
+        <h1 class="page-title">Horarios</h1>
+        <p class="page-subtitle">Programación de sesiones — Edificio K</p>
+      </div>
+    </div>
+
+    <div class="page-header-stats">
+      <div class="stat-chip stat-chip--active">
+        <span class="material-symbols-rounded">radio_button_checked</span>
+        <span>{{ totalActivas() }} activas</span>
+      </div>
+      <div class="stat-chip stat-chip--inactive">
+        <span class="material-symbols-rounded">radio_button_unchecked</span>
+        <span>{{ totalInactivas() }} inactivas</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Filtros ──────────────────────────────────────────────────────────────── -->
+  <div class="filters-bar">
+
+    <!-- Buscar docente (texto libre) -->
+    <div class="filter-field filter-field--search">
+      <span class="filter-icon material-symbols-rounded">search</span>
+      <input
+        class="form-control filter-input"
+        type="text"
+        placeholder="Buscar por docente…"
+        [ngModel]="filtroDocente()"
+        (ngModelChange)="filtroDocente.set($event)"
+        name="filtroDocente"
+      />
+      @if (filtroDocente()) {
+        <button type="button" class="filter-clear-btn" (click)="filtroDocente.set('')">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+      }
+    </div>
+
+    <!-- Filtrar por Aula -->
+    <div class="filter-field">
+      <span class="filter-icon material-symbols-rounded">meeting_room</span>
+      <select
+        class="form-control filter-select"
+        [ngModel]="filtroAula()"
+        (ngModelChange)="filtroAula.set($event)"
+        name="filtroAula"
+      >
+        <option value="">Todas las aulas</option>
+        @for (a of aulasUnicas(); track a) {
+          <option [value]="a">{{ a }}</option>
+        }
+      </select>
+    </div>
+
+    <!-- Filtrar por Grupo -->
+    <div class="filter-field">
+      <span class="filter-icon material-symbols-rounded">groups</span>
+      <select
+        class="form-control filter-select"
+        [ngModel]="filtroGrupo()"
+        (ngModelChange)="filtroGrupo.set($event)"
+        name="filtroGrupo"
+      >
+        <option value="">Todos los grupos</option>
+        @for (g of gruposUnicos(); track g) {
+          <option [value]="g">{{ g }}</option>
+        }
+      </select>
+    </div>
+
+    <!-- Filtrar por Día -->
+    <div class="filter-field">
+      <span class="filter-icon material-symbols-rounded">today</span>
+      <select
+        class="form-control filter-select"
+        [ngModel]="filtroDia()"
+        (ngModelChange)="filtroDia.set($event)"
+        name="filtroDia"
+      >
+        <option value="">Todos los días</option>
+        @for (d of diasOpciones; track d.valor) {
+          <option [value]="d.valor">{{ d.nombre }}</option>
+        }
+      </select>
+    </div>
+
+    <!-- Limpiar filtros -->
+    @if (hasActiveFilters()) {
+      <button type="button" class="btn btn-ghost btn-sm clear-all-btn" (click)="clearFilters()">
+        <span class="material-symbols-rounded">filter_alt_off</span>
+        Limpiar filtros
+      </button>
+    }
+
+  </div>
+
+  <!-- ── Contenido principal ──────────────────────────────────────────────────── -->
+
+  @if (loading()) {
+    <div class="state-container">
+      <div class="loading-grid">
+        @for (i of [1,2,3,4,5,6]; track i) {
+          <div class="skeleton-row"></div>
+        }
+      </div>
+    </div>
+
+  } @else if (error()) {
+    <div class="state-container">
+      <div class="empty-state empty-state--error">
+        <span class="material-symbols-rounded">error</span>
+        <p>{{ error() }}</p>
+        <button type="button" class="btn btn-primary" (click)="fetchSesiones()">
+          Reintentar
+        </button>
+      </div>
+    </div>
+
+  } @else if (sesionesFiltered().length === 0) {
+    <div class="state-container">
+      <div class="empty-state">
+        <span class="material-symbols-rounded">
+          {{ hasActiveFilters() ? 'search_off' : 'event_busy' }}
+        </span>
+        <p>
+          @if (hasActiveFilters()) {
+            Ninguna sesión coincide con los filtros aplicados.
+          } @else {
+            No hay sesiones registradas aún.
+          }
+        </p>
+        @if (hasActiveFilters()) {
+          <button type="button" class="btn btn-ghost btn-sm" (click)="clearFilters()">
+            <span class="material-symbols-rounded">filter_alt_off</span>
+            Quitar filtros
+          </button>
+        }
+      </div>
+    </div>
+
+  } @else {
+
+    <!-- Contador de resultados -->
+    <div class="results-meta">
+      <span>
+        Mostrando <strong>{{ sesionesFiltered().length }}</strong>
+        de <strong>{{ sesiones().length }}</strong> sesiones
+      </span>
+    </div>
+
+    <!-- ── Tabla ──────────────────────────────────────────────────────────────── -->
+    <div class="table-wrapper">
+      <table class="schedules-table">
+        <thead>
+          <tr>
+            <th>Aula</th>
+            <th>Docente</th>
+            <th>Materia</th>
+            <th>Grupo</th>
+            <th>Horario</th>
+            <th>Días</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (s of sesionesFiltered(); track s.id) {
+            <tr class="table-row" [class.row--inactive]="!s.activa">
+              <!-- Aula -->
+              <td>
+                <div class="cell-aula">
+                  <span class="material-symbols-rounded aula-icon">meeting_room</span>
+                  <span class="aula-name">{{ s.aulaNombre }}</span>
+                </div>
+              </td>
+
+              <!-- Docente -->
+              <td>
+                <div class="cell-persona">
+                  <div class="avatar-mini">
+                    {{ s.profesorNombre.split(' ').slice(0,2).map(w => w[0]).join('').toUpperCase() }}
+                  </div>
+                  <span>{{ s.profesorNombre }}</span>
+                </div>
+              </td>
+
+              <!-- Materia -->
+              <td>
+                <div class="cell-materia">
+                  <span class="materia-nombre">{{ s.materiaNombre }}</span>
+                  <span class="badge badge-code">{{ s.materiaCodigo }}</span>
+                </div>
+              </td>
+
+              <!-- Grupo -->
+              <td>
+                <span class="grupo-chip">{{ s.grupoNombre }}</span>
+              </td>
+
+              <!-- Horario -->
+              <td>
+                <div class="cell-horario">
+                  <span class="material-symbols-rounded horario-icon">schedule</span>
+                  <span class="horario-text">{{ s.horaInicio }} – {{ s.horaFin }}</span>
+                </div>
+              </td>
+
+              <!-- Días -->
+              <td>
+                <div class="dias-chips" [attr.title]="diasTexto(s.diasSemana)">
+                  @for (d of parseDias(s.diasSemana); track d) {
+                    <span class="dia-pill">{{ diaAbrev(d) }}</span>
+                  }
+                </div>
+              </td>
+
+              <!-- Estado -->
+              <td>
+                <span class="badge" [class]="s.activa ? 'badge-active' : 'badge-inactive'">
+                  <span class="badge-dot"></span>
+                  {{ s.activa ? 'Activa' : 'Inactiva' }}
+                </span>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+  }
+
+</div>
