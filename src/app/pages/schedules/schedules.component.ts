@@ -89,7 +89,7 @@ export class SchedulesComponent implements OnInit {
     this.fetchSesiones();
   }
 
-  private fetchSesiones(): void {
+  fetchSesiones(): void {
     const token = this.auth.getToken?.() ?? localStorage.getItem('token') ?? '';
     this.http
       .get<Sesion[]>(`${environment.apiUrl}/aulas/sesiones/todas`, {
