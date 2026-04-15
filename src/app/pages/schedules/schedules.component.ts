@@ -140,4 +140,9 @@ export class SchedulesComponent implements OnInit {
   diasTexto(diasStr: string): string {
     return this.parseDias(diasStr).map(d => this.diaNombre(d)).join(', ');
   }
+
+  getInitials(name: string): string {
+    if (!name) return '';
+    return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
+  }
 }

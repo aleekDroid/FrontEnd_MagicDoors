@@ -186,10 +186,10 @@
               <!-- Docente -->
               <td>
                 <div class="cell-persona">
-                  <div class="avatar-mini">
-                    {{ s.profesorNombre.split(' ').slice(0,2).map(w => w[0]).join('').toUpperCase() }}
-                  </div>
-                  <span>{{ s.profesorNombre }}</span>
+                    <div class="avatar-mini">
+                        {{ getInitials(s.profesorNombre) }}
+                    </div>
+                <span>{{ s.profesorNombre }}</span>
                 </div>
               </td>
 
