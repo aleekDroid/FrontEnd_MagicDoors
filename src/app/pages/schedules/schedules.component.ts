@@ -145,4 +145,26 @@ export class SchedulesComponent implements OnInit {
     if (!name) return '';
     return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
   }
+
+// ── Acciones CRUD ─────────────────────────────────────────────────────────────
+
+  abrirEditor(sesion: Sesion): void {
+    // Modal temporal para que Angular compile
+    alert(`Próximamente: Editar sesión de ${sesion.profesorNombre} en el ${sesion.aulaNombre}`);
+  }
+
+  eliminarSesion(id: number): void {
+    if (!confirm('¿Estás seguro de eliminar este horario?')) return;
+
+    const token = this.auth.getToken?.() ?? localStorage.getItem('token') ?? '';
+    this.http.delete(`${environment.apiUrl}/api/aulas/sesiones/${id}`, {
+      headers: new HttpHeaders({ Authorization: `Bearer ${token}` })
+    }).subscribe({
+      next: () => {
+        // Actualizamos la lista local filtrando la borrada para que desaparezca al instante
+        this.sesiones.update(list => list.filter(s => s.id !== id));
+      },
+      error: (err) => alert('Error al eliminar: ' + err.error?.error)
+    });
+  }
 }

@@ -170,6 +170,7 @@
             <th>Horario</th>
             <th>Días</th>
             <th>Estado</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -230,6 +231,16 @@
                   {{ s.activa ? 'Activa' : 'Inactiva' }}
                 </span>
               </td>
+              <td>
+  <div class="actions-cell">
+    <button class="btn-icon" (click)="abrirEditor(s)" title="Editar">
+      <span class="material-symbols-rounded">edit</span>
+    </button>
+    <button class="btn-icon btn-icon--danger" (click)="eliminarSesion(s.id)" title="Eliminar">
+      <span class="material-symbols-rounded">delete</span>
+    </button>
+  </div>
+</td>
             </tr>
           }
         </tbody>
