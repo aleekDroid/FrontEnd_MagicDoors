@@ -107,6 +107,6 @@ export class LoginComponent {
     if (res.user) {
       localStorage.setItem('usuario', JSON.stringify(res.user));
     }
-    this.router.navigate(['/home']);
+    window.location.href = '/home';
   }
 }
