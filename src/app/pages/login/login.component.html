@@ -1,10 +1,8 @@
 <div class="login-page">
 
-  <!-- ── Decorative left panel ─────────────────────────────────────── -->
   <aside class="login-aside">
     <div class="aside-content">
       <div class="blueprint-grid" aria-hidden="true">
-        <!-- Mini floor plan decoration -->
         <div class="bp-building">
           <div class="bp-row">
             <div class="bp-room top"></div>
@@ -28,12 +26,10 @@
     </div>
   </aside>
 
-  <!-- ── Login form ─────────────────────────────────────────────────── -->
   <main class="login-main">
     <div class="login-card">
 
       <div class="login-header">
-        <!-- Logo placeholder -->
         <div class="card-logo">
           <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" width="44" height="44">
             <rect x="2" y="8" width="32" height="24" rx="2" stroke="#27548A" stroke-width="2.5"/>
@@ -42,10 +38,15 @@
             <path d="M14 21h8" stroke="#27548A" stroke-width="2" stroke-linecap="round"/>
             <path d="M14 8V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v3" stroke="#27548A" stroke-width="2"/>
           </svg>
-          <!-- <img src="assets/logo.svg" alt="MG Magic Doors" height="44" /> -->
         </div>
-        <h2>Bienvenido de vuelta</h2>
-        <p>Ingresa tus credenciales para acceder a Magic Doors</p>
+        
+        @if (step() === 'login') {
+          <h2>Bienvenido de vuelta</h2>
+          <p>Ingresa tus credenciales para acceder a Magic Doors</p>
+        } @else {
+          <h2>Verificación de seguridad</h2>
+          <p>Hemos protegido tu cuenta con 2FA</p>
+        }
       </div>
 
       <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
@@ -57,68 +58,103 @@
           </div>
         }
 
-        <!-- Email -->
-        <div class="form-group">
-          <label for="email">Correo electrónico</label>
-          <div class="input-wrapper">
-            <span class="material-symbols-rounded input-icon">mail</span>
-            <input
-              id="email"
-              type="email"
-              class="form-control"
-              formControlName="email"
-              placeholder="usuario@escuela.edu"
-              autocomplete="email"
-            />
+        @if (step() === 'login') {
+          <div class="form-group">
+            <label for="email">Correo electrónico</label>
+            <div class="input-wrapper">
+              <span class="material-symbols-rounded input-icon">mail</span>
+              <input
+                id="email"
+                type="email"
+                class="form-control"
+                formControlName="email"
+                placeholder="usuario@escuela.edu"
+                autocomplete="email"
+              />
+            </div>
+            @if (f['email'].invalid && f['email'].touched) {
+              <span class="field-error">Ingresa un correo válido</span>
+            }
           </div>
-          @if (f['email'].invalid && f['email'].touched) {
-            <span class="field-error">Ingresa un correo válido</span>
-          }
-        </div>
 
-        <!-- Password -->
-        <div class="form-group">
-          <label for="password">Contraseña</label>
-          <div class="input-wrapper">
-            <span class="material-symbols-rounded input-icon">lock</span>
-            <input
-              id="password"
-              [type]="showPass() ? 'text' : 'password'"
-              class="form-control"
-              formControlName="password"
-              placeholder="••••••••"
-              autocomplete="current-password"
-            />
-            <button type="button" class="pass-toggle" (click)="togglePass()">
-              <span class="material-symbols-rounded">{{ showPass() ? 'visibility_off' : 'visibility' }}</span>
-            </button>
+          <div class="form-group">
+            <label for="password">Contraseña</label>
+            <div class="input-wrapper">
+              <span class="material-symbols-rounded input-icon">lock</span>
+              <input
+                id="password"
+                [type]="showPass() ? 'text' : 'password'"
+                class="form-control"
+                formControlName="password"
+                placeholder="••••••••"
+                autocomplete="current-password"
+              />
+              <button type="button" class="pass-toggle" (click)="togglePass()">
+                <span class="material-symbols-rounded">{{ showPass() ? 'visibility_off' : 'visibility' }}</span>
+              </button>
+            </div>
+            @if (f['password'].invalid && f['password'].touched) {
+              <span class="field-error">La contraseña es requerida</span>
+            }
           </div>
-          @if (f['password'].invalid && f['password'].touched) {
-            <span class="field-error">La contraseña es requerida</span>
-          }
-        </div>
 
-        <!-- Remember me -->
-        <label class="checkbox-label">
-          <input type="checkbox" formControlName="remember" />
-          <span class="checkbox-custom"></span>
-          Mantener sesión iniciada
-        </label>
+          <label class="checkbox-label">
+            <input type="checkbox" formControlName="remember" />
+            <span class="checkbox-custom"></span>
+            Mantener sesión iniciada
+          </label>
 
-        <!-- Submit -->
-        <button
-          type="submit"
-          class="btn btn-primary submit-btn"
-          [disabled]="form.invalid || loading()"
-        >
-          @if (loading()) {
-            <span class="spinner"></span>
-            Verificando...
-          } @else {
-            <span class="material-symbols-rounded">login</span>
-            Iniciar sesión
-          }
-        </button>
+          <button type="submit" class="btn btn-primary submit-btn" [disabled]="form.invalid || loading()">
+            @if (loading()) {
+              <span class="spinner"></span>
+              Verificando...
+            } @else {
+              <span class="material-symbols-rounded">login</span>
+              Iniciar sesión
+            }
+          </button>
+        }
+
+        @if (step() === '2fa') {
+          <div class="form-group" style="text-align: center; margin-bottom: 20px;">
+            <span class="material-symbols-rounded" style="font-size: 48px; color: var(--color-navy); margin-bottom: 10px;">mark_email_read</span>
+            <p style="color: var(--color-text-muted); font-size: 0.95rem;">
+              Ingresa el código de 6 dígitos que enviamos a<br>
+              <strong style="color: var(--color-navy);">{{ userEmail() }}</strong>
+            </p>
+            
+            <div class="input-wrapper" style="margin-top: 15px;">
+              <span class="material-symbols-rounded input-icon">dialpad</span>
+              <input
+                id="codigo2fa"
+                type="text"
+                class="form-control"
+                formControlName="codigo2fa"
+                placeholder="Ej. 123456"
+                maxlength="6"
+                autocomplete="one-time-code"
+                style="text-align: center; font-size: 1.5rem; letter-spacing: 8px; font-weight: bold; padding-left: 15px;"
+              />
+            </div>
+            @if (f['codigo2fa'].invalid && f['codigo2fa'].touched) {
+              <span class="field-error" style="display: block; margin-top: 5px;">Ingresa un código válido de 6 dígitos</span>
+            }
+          </div>
+
+          <button type="submit" class="btn btn-primary submit-btn" [disabled]="f['codigo2fa'].invalid || loading()">
+            @if (loading()) {
+              <span class="spinner"></span>
+              Verificando...
+            } @else {
+              <span class="material-symbols-rounded">verified_user</span>
+              Validar Código
+            }
+          </button>
+
+          <button type="button" class="btn demo-btn submit-btn" (click)="volverAlLogin()" [disabled]="loading()" style="justify-content: center; background: transparent; border: none; box-shadow: none;">
+            Volver al inicio
+          </button>
+        }
       </form>
     </div>
   </main>
