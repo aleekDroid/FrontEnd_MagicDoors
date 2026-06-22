@@ -102,11 +102,9 @@ export class LoginComponent {
     this.errorMsg.set('');
   }
 
-  private guardarSesionYNavegar(res: any): void {
-    localStorage.setItem('token', res.token);
-    if (res.user) {
-      localStorage.setItem('user', JSON.stringify(res.user));
-    }
-    window.location.href = '/home';
+private guardarSesionYNavegar(res: any): void {
+    this.auth.storeSession(res);
+    
+    this.router.navigate(['/home']);
   }
 }
