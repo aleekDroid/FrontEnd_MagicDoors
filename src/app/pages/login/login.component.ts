@@ -105,7 +105,7 @@ export class LoginComponent {
   private guardarSesionYNavegar(res: any): void {
     localStorage.setItem('token', res.token);
     if (res.user) {
-      localStorage.setItem('usuario', JSON.stringify(res.user));
+      localStorage.setItem('user', JSON.stringify(res.user));
     }
     window.location.href = '/home';
   }
